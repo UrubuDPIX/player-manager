@@ -205,6 +205,14 @@ const panelDir = process.argv[2];
         pm = c.match(/<NavLink[^>]*>[\s\S]*?Files[\s\S]*?<\/NavLink>/i);
     }
     
+    if (!pm) {
+        console.log('✓ ServerElements não possui abas fixas conhecidas. Provavelmente usa mapa dinâmico. Ignorando injeção manual.');
+        // Clean up any bad injection just in case
+        c = c.replace(/<NavLink to={`\${match.url}\/players`}>[\s\S]*?<\/NavLink>\n?/i, '');
+        fs.writeFileSync(sePath, c);
+        return;
+    }
+    
     if (pm) {
       const ls = c.lastIndexOf('\n', pm.index) + 1;
       const ind = (c.slice(ls, pm.index).match(/^(\s*)/) || ['',''])[1];
