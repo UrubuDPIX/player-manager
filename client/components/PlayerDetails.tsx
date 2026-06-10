@@ -95,6 +95,18 @@ const InventorySlot = ({ item, className = "" }: { item?: any, className?: strin
         alt={id} 
         className="w-full h-full object-contain"
         style={{ imageRendering: 'pixelated' }}
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          if (!target.dataset.fallback) {
+             target.dataset.fallback = "1";
+             target.src = `https://minecraft-api.vercel.app/images/blocks/${id}.png`;
+          } else if (target.dataset.fallback === "1") {
+             target.dataset.fallback = "2";
+             target.src = `https://minecraft-api.vercel.app/images/items/${id}.png`;
+          } else {
+             target.style.opacity = '0';
+          }
+        }}
       />
       {count > 1 && (
         <span className="absolute bottom-0 right-1 text-white font-bold z-10" style={{ fontSize: '0.7rem', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000' }}>
