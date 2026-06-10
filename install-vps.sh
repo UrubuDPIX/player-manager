@@ -95,7 +95,7 @@ install_frontend() {
     sed -i "s|../api/files|./api/files|g" "$target_dir/PlayerDetails.tsx" 2>/dev/null || true
 
     print_info "Baixando nbt.js puro (ES5) localmente para evitar erros de Webpack..."
-    curl -sSL https://unpkg.com/nbt@0.8.0/nbt.js -o "$target_dir/nbt.js"
+    curl -sSL https://unpkg.com/nbt@0.8.1/nbt.js -o "$target_dir/nbt.js"
 }
 
 inject_frontend_routes() {
