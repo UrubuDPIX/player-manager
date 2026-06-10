@@ -10,21 +10,40 @@ import { Buffer } from 'buffer';
 const pako = require('pako');
 const nbt = require('./nbt');
 
-const InventorySlot = ({ item }: { item?: any }) => {
+const InventorySlot = ({ item, className = "" }: { item?: any, className?: string }) => {
   if (!item) {
-    return <div className="aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff]"></div>;
+    return <div className={`aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] ${className}`}></div>;
   }
   
   const id = item.id?.value?.replace('minecraft:', '');
   const count = item.Count?.value ?? item.count?.value ?? 1;
+  const isEnchanted = item.components?.value?.['minecraft:enchantments'] || item.tag?.value?.Enchantments || item.components?.value?.['minecraft:enchantment_glint_override']?.value === 1;
   
   return (
-    <div className="aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] relative flex items-center justify-center p-1">
+    <div className={`aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] relative flex items-center justify-center p-1 ${className} ${isEnchanted ? 'enchanted' : ''}`}>
+      <style>{`
+        @keyframes glint {
+          0% { background-position: -100% -100%; }
+          100% { background-position: 200% 200%; }
+        }
+        .enchanted::after {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: linear-gradient(135deg, rgba(128,64,255,0) 0%, rgba(128,64,255,0) 35%, rgba(128,64,255,0.6) 50%, rgba(128,64,255,0) 65%, rgba(128,64,255,0) 100%);
+          background-size: 200% 200%;
+          animation: glint 3s linear infinite;
+          mix-blend-mode: screen;
+          pointer-events: none;
+          z-index: 10;
+        }
+      `}</style>
       <img 
         src={`https://api.minecraftitems.xyz/api/item/${id}`} 
         alt={id} 
         className="w-full h-full object-contain"
         style={{ imageRendering: 'pixelated' }}
+        title={id}
       />
       {count > 1 && (
         <span className="absolute bottom-0 right-1 text-white font-bold" style={{ fontSize: '0.7rem', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000' }}>
@@ -67,9 +86,15 @@ export default ({ player, onBack }: Props) => {
     }
   };
 
-  const fetchNbt = async (isBackground = false) => {
+  const fetchNbt = async (isBackground = false, forceSave = false) => {
     try {
       if (!isBackground) setLoadingNbt(true);
+      
+      if (forceSave) {
+        await sendCommand(server.uuid, 'save-all');
+        await new Promise(resolve => setTimeout(resolve, 1500)); // wait for file flush
+      }
+
       const downloadUrl = await getPlayerDataUrl(server.uuid, player.uuid);
       
       // Fetch the binary file
@@ -130,7 +155,7 @@ export default ({ player, onBack }: Props) => {
             </div>
             <div className="text-xs text-green-500 mt-2 flex items-center gap-2">
               <span>Auto-syncing every 10s</span>
-              <button onClick={() => fetchNbt(false)} className="hover:text-white transition-colors cursor-pointer" title="Force Sync">
+              <button onClick={() => fetchNbt(false, true)} className="hover:text-white transition-colors cursor-pointer" title="Force Save & Sync">
                 <FontAwesomeIcon icon={faSync} className={loadingNbt ? "animate-spin text-gray-400" : ""} />
               </button>
             </div>
@@ -169,7 +194,7 @@ export default ({ player, onBack }: Props) => {
           <div className="bg-[#c6c6c6] p-4 rounded shadow-inner" style={{ imageRendering: 'pixelated' }}>
             <div className="flex gap-4 mb-4">
               {/* Armor Slots */}
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 w-12 shrink-0">
                 <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 103)} /> {/* Helmet */}
                 <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 102)} /> {/* Chestplate */}
                 <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 101)} /> {/* Leggings */}
@@ -178,11 +203,11 @@ export default ({ player, onBack }: Props) => {
 
               {/* 3D Skin Preview Mockup */}
               <div className="flex-1 bg-black/20 rounded flex items-center justify-center p-2 relative">
-                <img src={`https://mc-heads.net/body/${player.uuid}`} alt="Player Body" className="h-48 object-contain" />
+                <img src={`https://nmsr.nickac.dev/fullbody/${player.uuid}`} alt="Player Body" className="h-48 object-contain" />
               </div>
 
               {/* Shield/Offhand */}
-              <div className="flex flex-col justify-end gap-1">
+              <div className="flex flex-col justify-end gap-1 w-12 shrink-0">
                 <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === -106)} />
               </div>
               
