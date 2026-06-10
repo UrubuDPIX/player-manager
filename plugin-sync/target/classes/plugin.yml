@@ -1,0 +1,6 @@
+name: PlayerManagerSync
+version: 1.0.0
+main: com.urubudpix.playermanagersync.PlayerManagerSync
+api-version: 1.13
+authors: [UrubuDPIX, Antigravity]
+description: Sincroniza o inventário dos jogadores em tempo real para o painel Jexactyl!
