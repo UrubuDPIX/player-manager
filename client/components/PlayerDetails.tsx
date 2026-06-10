@@ -219,7 +219,9 @@ export default ({ player, onBack }: Props) => {
 
   useEffect(() => {
     fetchNbt(false);
-    const interval = setInterval(() => fetchNbt(true), 10000);
+    // Removemos o fetchNbt(true) daqui para não floodar o servidor com /save-all.
+    // O plugin de sync já escreve o arquivo .dat a cada 5 segundos de forma leve.
+    const interval = setInterval(() => fetchNbt(false), 10000);
     return () => clearInterval(interval);
   }, [server.uuid, player.uuid]);
 
@@ -233,13 +235,9 @@ export default ({ player, onBack }: Props) => {
       .filter(line => 
         line.includes('INFO') && 
         line.includes(player.name) && 
-        (
-          line.includes('<' + player.name + '>') || 
-          line.includes('issued') || 
-          line.includes('command') || 
-          line.includes('[Not Secure]') || 
-          line.includes('Async Chat Thread')
-        )
+        !line.includes('logged in with entity id') && // Remove coordenada login
+        !line.includes('UUID of player') && // Remove hash UUID
+        !line.includes('lost connection: Disconnected') // Limpa spam normal de disconnect
       )
       .map(line => {
         // Remove the thread/class noise: [10Jun2026 01:13:55.391] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: <Okairu> msg
@@ -603,8 +601,16 @@ export default ({ player, onBack }: Props) => {
               <ul className="space-y-2">
                 {playerLogs.map((log, i) => {
                   const isCommand = log.includes('issued') || log.includes('command');
+                  const isAchievement = log.includes('has made the advancement') || log.includes('has completed the challenge');
+                  const isServerAction = log.includes('[Server:');
+                  
+                  let colorClass = 'border-blue-500 text-gray-100 bg-gray-800/30'; // Normal Chat / Action
+                  if (isCommand) colorClass = 'border-yellow-500 text-yellow-200 bg-yellow-900/10';
+                  if (isAchievement) colorClass = 'border-green-500 text-green-300 bg-green-900/10 font-bold';
+                  if (isServerAction) colorClass = 'border-purple-500 text-purple-300 bg-purple-900/10 italic';
+
                   return (
-                    <li key={i} className={`border-l-2 pl-3 py-1 ${isCommand ? 'border-yellow-500 text-yellow-200 bg-yellow-900/10' : 'border-blue-500 text-gray-100 bg-gray-800/30'}`}>
+                    <li key={i} className={`border-l-2 pl-3 py-1 ${colorClass}`}>
                       {log}
                     </li>
                   );
