@@ -109,7 +109,44 @@ const fs = require('fs');
 const path = require('path');
 const panelDir = process.argv[2];
 
-// 1. Patch ServerRouter.tsx
+// 1. Patch routes.ts (For newer Pterodactyl versions like 1.11+)
+(function patchRoutesTs() {
+  const rtPath = path.join(panelDir, 'resources/scripts/routers/routes.ts');
+  if (!fs.existsSync(rtPath)) return;
+  let c = fs.readFileSync(rtPath, 'utf8');
+  
+  c = c.replace(/\{[^}]*path:\s*'\/players'[^}]*\},?\n?/gs, '');
+  c = c.replace(/import PlayersContainer from '[^']+';?\n?/g, '');
+  c = c.replace(/import PlayersContainer from "[^"]+";?\n?/g, '');
+  
+  if (!c.includes('/players') && !c.includes('PlayersContainer')) {
+    const imports = [...c.matchAll(/^import .+from .+;$/gm)];
+    if (imports.length) {
+      const lm = imports[imports.length - 1];
+      c = c.slice(0, lm.index + lm[0].length) +
+          "\nimport PlayersContainer from '@/components/server/player-manager/PlayersContainer';" +
+          c.slice(lm.index + lm[0].length);
+    }
+    
+    // Inserir depois do modpacks se existir, senao no inicio do server routes
+    const sm = c.match(/path:\s*'\/modpacks'[^}]*\},/);
+    if (sm) {
+      const route = "\n        {\n            path: '/players',\n            name: 'Players',\n            permission: null,\n            component: PlayersContainer,\n        },";
+      c = c.slice(0, sm.index + sm[0].length) + route + c.slice(sm.index + sm[0].length);
+      console.log('✓ Rota /players adicionada no routes.ts (após Modpacks)');
+    } else {
+      const srvMatch = c.match(/server:\s*\[/);
+      if (srvMatch) {
+        const route = "\n        {\n            path: '/players',\n            name: 'Players',\n            permission: null,\n            component: PlayersContainer,\n        },";
+        c = c.slice(0, srvMatch.index + srvMatch[0].length) + route + c.slice(srvMatch.index + srvMatch[0].length);
+        console.log('✓ Rota /players adicionada no routes.ts');
+      }
+    }
+  }
+  fs.writeFileSync(rtPath, c);
+})();
+
+// 2. Patch ServerRouter.tsx (For older Pterodactyl versions)
 (function patchServerRouter() {
   const srPath = path.join(panelDir, 'resources/scripts/routers/ServerRouter.tsx');
   if (!fs.existsSync(srPath)) return;
@@ -143,12 +180,21 @@ const panelDir = process.argv[2];
   fs.writeFileSync(srPath, c);
 })();
 
-// 2. Patch ServerElements.tsx (Navbar)
+// 3. Patch ServerElements.tsx (Navbar - For older Pterodactyl versions)
 (function patchServerElements() {
   const sePath = path.join(panelDir, 'resources/scripts/routers/ServerElements.tsx');
   if (!fs.existsSync(sePath)) return;
   let c = fs.readFileSync(sePath, 'utf8');
+  
+  // Limpa injecoes antigas se existirem
   c = c.replace(/<NavLink[^>]*\/players[^>]*>[\s\S]*?<\/NavLink>\n?/g, '');
+  
+  // Se o painel usa routes.map para a navbar (1.11+), nao precisamos injetar a tag manualmente
+  if (c.includes('routes.server.map')) {
+    console.log('✓ ServerElements usa routes.map, a aba aparecerá automaticamente.');
+    fs.writeFileSync(sePath, c);
+    return;
+  }
   
   if (!c.match(/<NavLink[^>]*>[\s\S]*?Players[\s\S]*?<\/NavLink>/i)) {
     let pm = c.match(/<NavLink[^>]*>[\s\S]*?Modpacks[\s\S]*?<\/NavLink>/i);
@@ -157,13 +203,6 @@ const panelDir = process.argv[2];
     }
     if (!pm) {
         pm = c.match(/<NavLink[^>]*>[\s\S]*?Files[\s\S]*?<\/NavLink>/i);
-    }
-    if (!pm) {
-        // Find the last NavLink in the file
-        const allNavs = [...c.matchAll(/<NavLink[^>]*>[\s\S]*?<\/NavLink>/gi)];
-        if (allNavs.length > 0) {
-            pm = allNavs[allNavs.length - 1];
-        }
     }
     
     if (pm) {
@@ -185,7 +224,7 @@ const panelDir = process.argv[2];
       }
       console.log('✓ NavLink de Players injetado no ServerElements.tsx');
     } else {
-      console.log('⚠ Não foi possível encontrar a aba Modpacks, Users ou Files no ServerElements.tsx!');
+      console.log('⚠ Não foi possível encontrar a aba Modpacks, Users ou Files no ServerElements.tsx (manual inject falhou)');
     }
   } else {
     console.log('⚠ Aba Players já existe no ServerElements.tsx (skipping)');
