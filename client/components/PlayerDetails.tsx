@@ -240,6 +240,7 @@ export default ({ player, onBack }: Props) => {
   const inventory = nbtData?.value?.Inventory?.value?.value || [];
 
   const showStats = gamemode !== 1 && gamemode !== 3; // Hide in Creative and Spectator
+  const isOp = player.isOp;
 
   const HealthBar = ({ health }: { health: number }) => {
     const maxHearts = Math.max(10, Math.ceil(health / 2));
