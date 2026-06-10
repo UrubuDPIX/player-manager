@@ -245,14 +245,9 @@ const panelDir = process.argv[2];
               '\n' + ind + '    <FontAwesomeIcon icon={faUsers} /> Players' +
               '\n' + ind + '</' + tag + '>';
   
-  // Inject import FIRST before we inject the JSX, so .includes check works correctly!
-  if (!fileContent.includes('faUsers} from')) {
-      const fm = fileContent.match(/import\s+\{[^}]*\}\s+from\s+['"]@fortawesome\/free-solid-svg-icons['"];?/);
-      if (fm) {
-          fileContent = fileContent.slice(0, fm.index) + fm[0].replace('{', '{ faUsers, ') + fileContent.slice(fm.index + fm[0].length);
-      } else {
-          fileContent = "import { faUsers } from '@fortawesome/free-solid-svg-icons';\n" + fileContent;
-      }
+  // Inject import FIRST before we inject the JSX
+  if (!fileContent.match(/import\s+.*faUsers.*from\s+['"]@fortawesome\/free-solid-svg-icons['"]/)) {
+      fileContent = "import { faUsers } from '@fortawesome/free-solid-svg-icons';\n" + fileContent;
   }
   
   if (!fileContent.includes('FontAwesomeIcon')) {
