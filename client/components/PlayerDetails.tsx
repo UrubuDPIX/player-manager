@@ -8,7 +8,7 @@ import { ServerContext } from '@/state/server';
 import useFlash from '@/plugins/useFlash';
 import { Buffer } from 'buffer';
 const pako = require('pako');
-const nbt = require('nbt');
+const nbt = require('./nbt');
 
 const InventorySlot = ({ item }: { item?: any }) => {
   if (!item) {

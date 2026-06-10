@@ -93,6 +93,9 @@ install_frontend() {
     # Fix relative paths in imports if necessary
     sed -i "s|../api/files|./api/files|g" "$target_dir/PlayersContainer.tsx" 2>/dev/null || true
     sed -i "s|../api/files|./api/files|g" "$target_dir/PlayerDetails.tsx" 2>/dev/null || true
+
+    print_info "Baixando nbt.js puro (ES5) localmente para evitar erros de Webpack..."
+    curl -sSL https://unpkg.com/nbt@0.8.0/nbt.js -o "$target_dir/nbt.js"
 }
 
 inject_frontend_routes() {
@@ -187,9 +190,9 @@ build_panel() {
     cd "$PANEL_DIR"
     
     print_info "Instalando dependências no painel..."
-    yarn remove prismarine-nbt pako buffer @types/pako 2>/dev/null || true
-    npm uninstall prismarine-nbt pako buffer @types/pako 2>/dev/null || true
-    yarn add pako nbt buffer || npm install pako nbt buffer
+    yarn remove prismarine-nbt pako buffer @types/pako nbt 2>/dev/null || true
+    npm uninstall prismarine-nbt pako buffer @types/pako nbt 2>/dev/null || true
+    yarn add pako buffer || npm install pako buffer
 
     print_info "Limpando cache de build antigo..."
     rm -rf public/assets/* 2>/dev/null || true
