@@ -10,7 +10,7 @@ import { Buffer } from 'buffer';
 const pako = require('pako');
 const nbt = require('./nbt');
 
-const InventorySlot = ({ item, className = "" }: { item?: any, className?: string }) => {
+const InventorySlot = ({ item, slotIndex, onMoveItem, className = "" }: { item?: any, slotIndex?: number, onMoveItem?: (from: number, to: number) => void, className?: string }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   if (!item) {
@@ -94,6 +94,20 @@ const InventorySlot = ({ item, className = "" }: { item?: any, className?: strin
       className={`w-10 h-10 md:w-12 md:h-12 min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px] shrink-0 bg-[#8b8b8b] border-[2px] border-[#373737] border-t-[#ffffff] border-l-[#ffffff] relative flex items-center justify-center ${className} ${isEnchanted ? 'enchanted' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      draggable={item ? true : false}
+      onDragStart={(e) => {
+        if (slotIndex !== undefined) e.dataTransfer.setData('text/plain', slotIndex.toString());
+      }}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
+        if (slotIndex !== undefined && onMoveItem) {
+          const fromSlot = parseInt(e.dataTransfer.getData('text/plain'));
+          if (!isNaN(fromSlot) && fromSlot !== slotIndex) {
+            onMoveItem(fromSlot, slotIndex);
+          }
+        }
+      }}
     >
       <style>{`
         @keyframes glint {
@@ -206,6 +220,52 @@ export default ({ player, onBack }: Props) => {
     } catch (error) {
       console.error(error);
       addFlash({ type: 'danger', key: 'players', message: `Failed to execute command: ${error}` });
+    }
+  };
+
+  const handleMoveItem = async (fromSlot: number, toSlot: number) => {
+    if (isOnline) {
+      addFlash({ key: 'players', type: 'warning', message: 'O jogador está online! Para mover itens, ele precisa deslogar.' });
+      return;
+    }
+
+    if (!nbtData || !nbtData.value || !nbtData.value.Inventory || !nbtData.value.Inventory.value || !nbtData.value.Inventory.value.value) return;
+    
+    // Create a new NBT tree reference
+    const newNbtData = { ...nbtData };
+    const inventoryList = [...newNbtData.value.Inventory.value.value];
+    
+    const fromItemIndex = inventoryList.findIndex((i: any) => i.Slot.value === fromSlot);
+    const toItemIndex = inventoryList.findIndex((i: any) => i.Slot.value === toSlot);
+
+    if (fromItemIndex !== -1) {
+      // Clone items to avoid mutating old state directly
+      const fromItem = { ...inventoryList[fromItemIndex], Slot: { type: 'byte', value: toSlot } };
+      
+      if (toItemIndex !== -1) {
+        const toItem = { ...inventoryList[toItemIndex], Slot: { type: 'byte', value: fromSlot } };
+        inventoryList[fromItemIndex] = fromItem;
+        inventoryList[toItemIndex] = toItem;
+      } else {
+        inventoryList[fromItemIndex] = fromItem;
+      }
+      
+      newNbtData.value.Inventory.value.value = inventoryList;
+      setNbtData(newNbtData);
+
+      try {
+        const { uploadFile } = require('../api/files');
+        // nbt library supports writeUncompressed natively (prismarine-nbt)
+        const buffer = nbt.writeUncompressed(newNbtData);
+        const gzipped = pako.gzip(buffer);
+        await uploadFile(server.uuid, 'world/playerdata', `${player.uuid}.dat`, gzipped);
+        
+        clearFlashes('players');
+        addFlash({ key: 'players', type: 'success', message: 'Inventário atualizado e salvo no servidor!' });
+      } catch (e) {
+        console.error('Failed to upload NBT:', e);
+        addFlash({ key: 'players', type: 'error', message: 'Erro ao salvar o inventário no servidor.' });
+      }
     }
   };
 
@@ -443,10 +503,10 @@ export default ({ player, onBack }: Props) => {
             <div className="flex gap-4 mb-4">
               {/* Armor Slots */}
               <div className="flex flex-col gap-1 w-12 shrink-0">
-                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 103)} /> {/* Helmet */}
-                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 102)} /> {/* Chestplate */}
-                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 101)} /> {/* Leggings */}
-                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 100)} /> {/* Boots */}
+                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 103)} slotIndex={103} onMoveItem={handleMoveItem} /> {/* Helmet */}
+                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 102)} slotIndex={102} onMoveItem={handleMoveItem} /> {/* Chestplate */}
+                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 101)} slotIndex={101} onMoveItem={handleMoveItem} /> {/* Leggings */}
+                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 100)} slotIndex={100} onMoveItem={handleMoveItem} /> {/* Boots */}
               </div>
 
               {/* 3D Skin Preview Mockup */}
@@ -456,7 +516,7 @@ export default ({ player, onBack }: Props) => {
 
               {/* Shield/Offhand */}
               <div className="flex flex-col justify-end gap-1 w-12 shrink-0">
-                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === -106)} />
+                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === -106)} slotIndex={-106} onMoveItem={handleMoveItem} />
               </div>
               
               {/* Location Info */}
@@ -482,7 +542,7 @@ export default ({ player, onBack }: Props) => {
             {/* Main Inventory 3x9 */}
             <div className="grid grid-cols-9 gap-1 mb-2">
               {Array.from({ length: 27 }).map((_, i) => (
-                <InventorySlot key={`inv-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i + 9)} />
+                <InventorySlot key={`inv-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i + 9)} slotIndex={i + 9} onMoveItem={handleMoveItem} />
               ))}
             </div>
           </div>
@@ -523,7 +583,7 @@ export default ({ player, onBack }: Props) => {
             <div className="bg-[#c6c6c6] border-[4px] border-[#555555] border-t-white border-l-white p-2 w-max mt-1" style={{ imageRendering: 'pixelated' }}>
               <div className="grid grid-cols-9 gap-1">
                 {Array.from({ length: 9 }).map((_, i) => (
-                  <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} />
+                  <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} slotIndex={i} onMoveItem={handleMoveItem} />
                 ))}
               </div>
             </div>

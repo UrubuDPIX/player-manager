@@ -73,3 +73,23 @@ export const getServerLog = async (uuid: string): Promise<string> => {
     return '';
   }
 };
+
+export const uploadFile = async (uuid: string, directory: string, fileName: string, fileContent: Blob | Buffer | Uint8Array): Promise<void> => {
+  try {
+    const { data } = await http.get(`/api/client/servers/${uuid}/files/upload`);
+    const uploadUrl = data.attributes.url;
+
+    const formData = new FormData();
+    const fileBlob = fileContent instanceof Blob ? fileContent : new Blob([fileContent], { type: 'application/octet-stream' });
+    formData.append('files', fileBlob, fileName);
+
+    await http.post(`${uploadUrl}&directory=${encodeURIComponent(directory)}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  } catch (error) {
+    console.error('Failed to upload file:', error);
+    throw error;
+  }
+};
