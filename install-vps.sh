@@ -150,13 +150,20 @@ const panelDir = process.argv[2];
   let c = fs.readFileSync(sePath, 'utf8');
   c = c.replace(/<NavLink[^>]*\/players[^>]*>[\s\S]*?<\/NavLink>\n?/g, '');
   
-  if (!c.match(/<NavLink[^>]*\/players[^>]*>/)) {
-    let pm = c.match(/<NavLink[^>]*\/modpacks[^>]*>[\s\S]*?<\/NavLink>/);
+  if (!c.match(/<NavLink[^>]*>[\s\S]*?Players[\s\S]*?<\/NavLink>/i)) {
+    let pm = c.match(/<NavLink[^>]*>[\s\S]*?Modpacks[\s\S]*?<\/NavLink>/i);
     if (!pm) {
-        pm = c.match(/<NavLink[^>]*\/users[^>]*>[\s\S]*?<\/NavLink>/);
+        pm = c.match(/<NavLink[^>]*>[\s\S]*?Users[\s\S]*?<\/NavLink>/i);
     }
     if (!pm) {
-        pm = c.match(/<NavLink[^>]*\/files[^>]*>[\s\S]*?<\/NavLink>/);
+        pm = c.match(/<NavLink[^>]*>[\s\S]*?Files[\s\S]*?<\/NavLink>/i);
+    }
+    if (!pm) {
+        // Find the last NavLink in the file
+        const allNavs = [...c.matchAll(/<NavLink[^>]*>[\s\S]*?<\/NavLink>/gi)];
+        if (allNavs.length > 0) {
+            pm = allNavs[allNavs.length - 1];
+        }
     }
     
     if (pm) {
