@@ -128,18 +128,21 @@ const panelDir = process.argv[2];
           c.slice(lm.index + lm[0].length);
     }
     
-    // Inserir depois do modpacks se existir, senao no inicio do server routes
-    const sm = c.match(/path:\s*'\/modpacks'[^}]*\},/);
-    if (sm) {
+    // Inserir depois do Files (que é nativo e sempre existe)
+    const fm = c.match(/path:\s*['"]\/files['"][^}]*\},/i);
+    if (fm) {
       const route = "\n        {\n            path: '/players',\n            name: 'Players',\n            permission: null,\n            component: PlayersContainer,\n        },";
-      c = c.slice(0, sm.index + sm[0].length) + route + c.slice(sm.index + sm[0].length);
-      console.log('✓ Rota /players adicionada no routes.ts (após Modpacks)');
+      c = c.slice(0, fm.index + fm[0].length) + route + c.slice(fm.index + fm[0].length);
+      console.log('✓ Rota /players adicionada no routes.ts (após Files)');
     } else {
-      const srvMatch = c.match(/server:\s*\[/);
+      // Fallback para qualquer lugar no server array
+      const srvMatch = c.match(/server:\s*\[/i);
       if (srvMatch) {
         const route = "\n        {\n            path: '/players',\n            name: 'Players',\n            permission: null,\n            component: PlayersContainer,\n        },";
         c = c.slice(0, srvMatch.index + srvMatch[0].length) + route + c.slice(srvMatch.index + srvMatch[0].length);
-        console.log('✓ Rota /players adicionada no routes.ts');
+        console.log('✓ Rota /players adicionada no routes.ts (inicio do server)');
+      } else {
+        console.log('⚠ Falha ao injetar a rota no routes.ts! Formato não reconhecido.');
       }
     }
   }
