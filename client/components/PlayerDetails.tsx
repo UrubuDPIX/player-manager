@@ -60,6 +60,28 @@ const InventorySlot = ({ item, className = "" }: { item?: any, className?: strin
     return null;
   };
 
+  const getMaxDurability = (id: string) => {
+    if (!id) return 0;
+    if (id.includes('netherite')) return 2031;
+    if (id.includes('diamond')) return 1561;
+    if (id.includes('iron')) return 250;
+    if (id.includes('golden')) return 32;
+    if (id.includes('stone')) return 131;
+    if (id.includes('wooden') || id.includes('leather')) return 59;
+    if (id.includes('bow')) return 384;
+    if (id.includes('trident')) return 250;
+    if (id.includes('shield')) return 336;
+    if (id.includes('elytra')) return 432;
+    if (id.includes('fishing_rod')) return 64;
+    if (id.includes('shears')) return 238;
+    if (id.includes('flint_and_steel')) return 64;
+    return 0;
+  };
+
+  const damage = item.components?.value?.['minecraft:damage']?.value ?? item.tag?.value?.Damage?.value;
+  const maxDurability = getMaxDurability(id);
+  const durabilityPercent = maxDurability > 0 && damage !== undefined ? Math.max(0, (maxDurability - damage) / maxDurability) : null;
+
   const formatName = (str: string) => {
     return str.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
@@ -113,6 +135,19 @@ const InventorySlot = ({ item, className = "" }: { item?: any, className?: strin
           {count}
         </span>
       )}
+      
+      {/* Durability Bar */}
+      {durabilityPercent !== null && (
+        <div className="absolute bottom-[2px] left-[2px] right-[2px] h-[2px] bg-black z-10">
+          <div 
+            className="h-full" 
+            style={{ 
+              width: `${durabilityPercent * 100}%`,
+              backgroundColor: durabilityPercent > 0.5 ? '#00ff00' : durabilityPercent > 0.2 ? '#ffff00' : '#ff0000'
+            }} 
+          />
+        </div>
+      )}
 
       {isHovered && (
         <div className="absolute z-50 bottom-[110%] left-1/2 transform -translate-x-1/2 w-max bg-[#110011]/95 border-2 border-[#3b00b8] p-2 rounded shadow-[0_0_10px_rgba(0,0,0,0.8)] pointer-events-none text-left" style={{ fontFamily: 'monospace' }}>
@@ -125,6 +160,9 @@ const InventorySlot = ({ item, className = "" }: { item?: any, className?: strin
                 <div key={idx}>{e}</div>
               ))}
             </div>
+          )}
+          {durabilityPercent !== null && (
+            <div className="text-gray-400 mt-1">Durability: {maxDurability - damage} / {maxDurability}</div>
           )}
         </div>
       )}
@@ -447,19 +485,12 @@ export default ({ player, onBack }: Props) => {
                 <InventorySlot key={`inv-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i + 9)} />
               ))}
             </div>
-
-            {/* Hotbar 1x9 */}
-            <div className="grid grid-cols-9 gap-1">
-              {Array.from({ length: 9 }).map((_, i) => (
-                <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} />
-              ))}
-            </div>
           </div>
 
-          {/* Right Side: Ender Chest & Stats */}
-          <div>
-            <div className="bg-[#c6c6c6] p-4 rounded shadow-inner mb-6" style={{ imageRendering: 'pixelated' }}>
-              {/* Ender Chest 3x9 */}
+          {/* Right Side: Ender Chest & Stats & Hotbar */}
+          <div className="flex flex-col items-center">
+            {/* Ender Chest 3x9 */}
+            <div className="bg-[#c6c6c6] p-3 rounded shadow-inner mb-6 w-max" style={{ imageRendering: 'pixelated' }}>
               <div className="grid grid-cols-9 gap-1">
                 {Array.from({ length: 27 }).map((_, i) => (
                   <InventorySlot key={`ender-${i}`} item={nbtData?.value?.EnderItems?.value?.value?.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} />
@@ -468,14 +499,34 @@ export default ({ player, onBack }: Props) => {
             </div>
             
             {showStats && (
-              <div className="flex justify-between items-center bg-black/40 p-4 rounded">
-                <HealthBar health={health} />
-                <div className="text-green-500 font-bold text-center">
-                  Level {loadingNbt ? '...' : nbtData?.value?.XpLevel?.value || 0}
+              <div className="w-max mb-1">
+                {/* Health & Food Row */}
+                <div className="flex justify-between items-end w-full px-1 mb-1">
+                  <HealthBar health={health} />
+                  <FoodBar food={foodLevel} />
                 </div>
-                <FoodBar food={foodLevel} />
+                
+                {/* XP Bar */}
+                <div className="relative w-[340px] h-[8px] border-2 border-black bg-gray-800 flex items-center justify-center mb-1">
+                  <div 
+                    className="absolute top-0 left-0 h-full bg-[#80ff20]" 
+                    style={{ width: `${(nbtData?.value?.XpP?.value || 0) * 100}%` }}
+                  ></div>
+                  <span className="relative text-[#80ff20] font-bold z-10" style={{ fontSize: '10px', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000', top: '-8px' }}>
+                    Level {loadingNbt ? '...' : nbtData?.value?.XpLevel?.value || 0}
+                  </span>
+                </div>
               </div>
             )}
+
+            {/* Hotbar 1x9 */}
+            <div className="bg-[#c6c6c6] p-2 rounded shadow-inner w-max mt-1" style={{ imageRendering: 'pixelated' }}>
+              <div className="grid grid-cols-9 gap-1">
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
