@@ -245,9 +245,8 @@ const panelDir = process.argv[2];
               '\n' + ind + '    <FontAwesomeIcon icon={faUsers} /> Players' +
               '\n' + ind + '</' + tag + '>';
   
-  fileContent = fileContent.slice(0, pmMatch.index + pmMatch[0].length) + inj + fileContent.slice(pmMatch.index + pmMatch[0].length);
-    
-  if (!fileContent.includes('faUsers')) {
+  // Inject import FIRST before we inject the JSX, so .includes check works correctly!
+  if (!fileContent.includes('faUsers} from')) {
       const fm = fileContent.match(/import\s+\{[^}]*\}\s+from\s+['"]@fortawesome\/free-solid-svg-icons['"];?/);
       if (fm) {
           fileContent = fileContent.slice(0, fm.index) + fm[0].replace('{', '{ faUsers, ') + fileContent.slice(fm.index + fm[0].length);
@@ -258,6 +257,15 @@ const panelDir = process.argv[2];
   
   if (!fileContent.includes('FontAwesomeIcon')) {
       fileContent = "import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';\n" + fileContent;
+  }
+
+  // Now we can inject the JSX block (we have to recalculate the index because fileContent length changed)
+  const newPmMatch = fileContent.match(new RegExp(pmMatch[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  if (newPmMatch) {
+      fileContent = fileContent.slice(0, newPmMatch.index + newPmMatch[0].length) + inj + fileContent.slice(newPmMatch.index + newPmMatch[0].length);
+  } else {
+      // Fallback if regex somehow fails
+      fileContent = fileContent.replace(pmMatch[0], pmMatch[0] + inj);
   }
   
   console.log('✓ Botão Players injetado com sucesso no arquivo: ' + path.basename(targetFile));
