@@ -281,7 +281,7 @@ export default ({ player, onBack }: Props) => {
         addFlash({ key: 'players', type: 'success', message: 'Inventário atualizado e salvo no servidor!' });
       } catch (e) {
         console.error('Failed to upload NBT:', e);
-        addFlash({ key: 'players', type: 'error', message: 'Erro ao salvar o inventário no servidor.' });
+        addFlash({ key: 'players', type: 'danger', message: 'Erro ao salvar o inventário no servidor.' });
       }
     }
   };
