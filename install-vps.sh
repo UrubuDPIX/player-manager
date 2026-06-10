@@ -227,12 +227,8 @@ const panelDir = process.argv[2];
           }
       }
       console.log('✓ NavLink de Players injetado no ServerElements.tsx');
-    } else {
-      console.log('⚠ Não foi possível encontrar a aba Modpacks, Users ou Files no ServerElements.tsx (manual inject falhou)');
-    }
-  } else {
-    console.log('⚠ Aba Players já existe no ServerElements.tsx (skipping)');
   }
+  
   fs.writeFileSync(sePath, c);
 })();
 JSEOF
