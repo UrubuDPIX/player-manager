@@ -150,7 +150,7 @@ const panelDir = process.argv[2];
   let c = fs.readFileSync(sePath, 'utf8');
   c = c.replace(/<NavLink[^>]*\/players[^>]*>[\s\S]*?<\/NavLink>\n?/g, '');
   
-  if (!c.includes('/players')) {
+  if (!c.match(/<NavLink[^>]*\/players[^>]*>/)) {
     let pm = c.match(/<NavLink[^>]*\/modpacks[^>]*>[\s\S]*?<\/NavLink>/);
     if (!pm) {
         pm = c.match(/<NavLink[^>]*\/users[^>]*>[\s\S]*?<\/NavLink>/);
@@ -177,7 +177,11 @@ const panelDir = process.argv[2];
           }
       }
       console.log('✓ NavLink de Players injetado no ServerElements.tsx');
+    } else {
+      console.log('⚠ Não foi possível encontrar a aba Modpacks, Users ou Files no ServerElements.tsx!');
     }
+  } else {
+    console.log('⚠ Aba Players já existe no ServerElements.tsx (skipping)');
   }
   fs.writeFileSync(sePath, c);
 })();
