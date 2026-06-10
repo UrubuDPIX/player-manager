@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PageContentBlock from '@/components/elements/PageContentBlock';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faTrash, faCog, faGavel, faCrown, faUserSlash, faRunning, faWrench, faSkull, faShieldAlt, faSync } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faTrash, faCog, faGavel, faCrown, faUserSlash, faRunning, faWrench, faSkull, faShieldAlt, faSync, faBox } from '@fortawesome/free-solid-svg-icons';
 import Button from '@/components/elements/Button';
 import { getPlayerDataUrl, sendCommand, getServerLog, getPlayerStats, listPlayerData } from '../api/files';
 import { ServerContext } from '@/state/server';
@@ -404,23 +404,22 @@ export default ({ player, onBack }: Props) => {
   const HealthBar = ({ health }: { health: number }) => {
     const maxHearts = Math.max(10, Math.ceil(health / 2));
     return (
-      <div className="flex gap-[2px] items-center" title={`${health}/20 Health`}>
+      <div className="flex items-center" style={{ gap: '-1px' }} title={`${health}/20 Health`}>
         {Array.from({ length: maxHearts }).map((_, i) => {
           const value = health - i * 2;
-          let type = 'empty';
-          if (value >= 2) type = 'full';
-          else if (value > 0) type = 'half';
+          let bgPos = '-32px 0px'; // empty
+          if (value >= 2) bgPos = '-104px 0px';
+          else if (value > 0) bgPos = '-122px 0px';
           
           return (
-            <div key={i} className="relative w-5 h-5 text-[18px] leading-none flex items-center justify-center">
-              <span className="absolute text-gray-700">♥</span>
-              {type === 'full' && <span className="absolute text-red-500 drop-shadow-[0_0_2px_rgba(239,68,68,0.8)]">♥</span>}
-              {type === 'half' && (
-                <span className="absolute text-red-500 drop-shadow-[0_0_2px_rgba(239,68,68,0.8)] overflow-hidden" style={{ width: '50%', left: 0 }}>
-                  ♥
-                </span>
-              )}
-            </div>
+            <div key={i} style={{
+                width: '18px',
+                height: '18px',
+                backgroundImage: 'url(https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.1/assets/minecraft/textures/gui/icons.png)',
+                backgroundSize: '512px 512px',
+                backgroundPosition: bgPos,
+                imageRendering: 'pixelated'
+            }} />
           );
         })}
       </div>
@@ -430,28 +429,61 @@ export default ({ player, onBack }: Props) => {
   const FoodBar = ({ food }: { food: number }) => {
     const maxFood = 10;
     return (
-      <div className="flex gap-[2px] items-center" title={`${food}/20 Hunger`}>
+      <div className="flex items-center" style={{ gap: '-1px' }} title={`${food}/20 Hunger`}>
         {Array.from({ length: maxFood }).map((_, i) => {
-          const value = food - i * 2;
-          let type = 'empty';
-          if (value >= 2) type = 'full';
-          else if (value > 0) type = 'half';
+          const value = food - (9 - i) * 2;
+          let bgPos = '-32px -54px'; // empty
+          if (value >= 2) bgPos = '-104px -54px';
+          else if (value > 0) bgPos = '-122px -54px';
           
           return (
-            <div key={i} className="relative w-5 h-5 text-[16px] leading-none flex items-center justify-center transform scale-x-[-1]">
-              <span className="absolute text-gray-700 opacity-50 grayscale">🍗</span>
-              {type === 'full' && <span className="absolute text-orange-400 drop-shadow-[0_0_2px_rgba(251,146,60,0.8)]">🍗</span>}
-              {type === 'half' && (
-                <span className="absolute text-orange-400 drop-shadow-[0_0_2px_rgba(251,146,60,0.8)] overflow-hidden flex justify-end" style={{ width: '50%', right: 0 }}>
-                  🍗
-                </span>
-              )}
-            </div>
+            <div key={i} style={{
+                width: '18px',
+                height: '18px',
+                backgroundImage: 'url(https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.1/assets/minecraft/textures/gui/icons.png)',
+                backgroundSize: '512px 512px',
+                backgroundPosition: bgPos,
+                imageRendering: 'pixelated'
+            }} />
           );
         })}
       </div>
     );
   };
+
+  const getStat = (category: string, key: string) => statsData?.stats?.[category]?.[key] || 0;
+  const getCustomStat = (key: string) => getStat('minecraft:custom', key);
+
+  const deaths = getCustomStat('minecraft:deaths');
+  const playerKills = getCustomStat('minecraft:player_kills');
+  const kdr = deaths === 0 ? playerKills.toFixed(1) : (playerKills / deaths).toFixed(1);
+  const timeSinceDeathTicks = getCustomStat('minecraft:time_since_death');
+  
+  const formatTime = (ticks: number) => {
+    const seconds = Math.floor(ticks / 20);
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const blocksTravelled = {
+    Walk: Math.floor(getCustomStat('minecraft:walk_one_cm') / 100),
+    Sprint: Math.floor(getCustomStat('minecraft:sprint_one_cm') / 100),
+    Crouch: Math.floor(getCustomStat('minecraft:crouch_one_cm') / 100),
+    Swim: Math.floor(getCustomStat('minecraft:swim_one_cm') / 100),
+    Fly: Math.floor(getCustomStat('minecraft:fly_one_cm') / 100)
+  };
+
+  const itemsPickedUp = Object.entries(statsData?.stats?.['minecraft:picked_up'] || {})
+    .sort(([, a], [, b]) => (b as number) - (a as number)).slice(0, 10);
+  const itemsUsed = Object.entries(statsData?.stats?.['minecraft:used'] || {})
+    .sort(([, a], [, b]) => (b as number) - (a as number)).slice(0, 10);
+  const mobsKilled = Object.entries(statsData?.stats?.['minecraft:killed'] || {})
+    .sort(([, a], [, b]) => (b as number) - (a as number)).slice(0, 10);
+
+  const formatStatName = (str: string) => str.replace('minecraft:', '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
   
   return (
     <PageContentBlock title={`Player - ${player.name}`} showFlashKey={'players'}>
@@ -753,6 +785,91 @@ export default ({ player, onBack }: Props) => {
 
       {activeTab === 'logs' && (
         <div className="mt-8">
+          <style>{`
+            .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+            .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+          `}</style>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+             <div className="bg-[#2a303c] rounded p-4 border border-gray-700 flex flex-col justify-center">
+                <div className="text-gray-400 text-xs mb-1 flex items-center gap-2"><FontAwesomeIcon icon={faCog} /> Gamemode</div>
+                <div className="text-white font-bold">{gamemode === 1 ? 'Creative' : gamemode === 2 ? 'Adventure' : gamemode === 3 ? 'Spectator' : 'Survival'}</div>
+             </div>
+             <div className="bg-[#2a303c] rounded p-4 border border-gray-700 flex flex-col justify-center">
+                <div className="text-gray-400 text-xs mb-1 flex items-center gap-2"><FontAwesomeIcon icon={faSkull} /> Last Death</div>
+                <div className="text-white font-bold">{formatTime(timeSinceDeathTicks)}</div>
+             </div>
+             <div className="bg-[#2a303c] rounded p-4 border border-gray-700 flex flex-col justify-center">
+                <div className="text-gray-400 text-xs mb-1 flex items-center gap-2"><FontAwesomeIcon icon={faShieldAlt} /> KDR</div>
+                <div className="text-white font-bold">{kdr}</div>
+             </div>
+             <div className="bg-[#2a303c] rounded p-4 border border-gray-700 flex flex-col justify-center">
+                <div className="text-gray-400 text-xs mb-1 flex items-center gap-2"><FontAwesomeIcon icon={faSkull} /> Deaths</div>
+                <div className="text-white font-bold">{deaths}</div>
+             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+             <div className="bg-[#2a303c] rounded p-4 border border-gray-700 overflow-hidden">
+                <h3 className="text-white text-sm font-bold mb-4 flex items-center gap-2"><FontAwesomeIcon icon={faBox} className="text-gray-400" /> Items Picked Up</h3>
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                   {itemsPickedUp.map(([key, val]) => (
+                      <div key={key} className="flex justify-between items-center text-xs">
+                         <div className="flex items-center gap-2 text-gray-300">
+                            <img src={`https://api.minecraftitems.xyz/api/item/${key.replace('minecraft:', '')}`} className="w-4 h-4" onError={(e) => (e.target as HTMLImageElement).style.display = 'none'} />
+                            {formatStatName(key)}
+                         </div>
+                         <div className="text-white font-mono">{val as number}</div>
+                      </div>
+                   ))}
+                </div>
+             </div>
+             
+             <div className="bg-[#2a303c] rounded p-4 border border-gray-700 overflow-hidden">
+                <h3 className="text-white text-sm font-bold mb-4 flex items-center gap-2"><FontAwesomeIcon icon={faWrench} className="text-gray-400" /> Items Used</h3>
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                   {itemsUsed.map(([key, val]) => (
+                      <div key={key} className="flex justify-between items-center text-xs">
+                         <div className="flex items-center gap-2 text-gray-300">
+                            <img src={`https://api.minecraftitems.xyz/api/item/${key.replace('minecraft:', '')}`} className="w-4 h-4" onError={(e) => (e.target as HTMLImageElement).style.display = 'none'} />
+                            {formatStatName(key)}
+                         </div>
+                         <div className="text-white font-mono">{val as number}</div>
+                      </div>
+                   ))}
+                </div>
+             </div>
+
+             <div className="bg-[#2a303c] rounded p-4 border border-gray-700 overflow-hidden">
+                <h3 className="text-white text-sm font-bold mb-4 flex items-center gap-2"><FontAwesomeIcon icon={faSkull} className="text-gray-400" /> Mobs Killed</h3>
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                   {mobsKilled.map(([key, val]) => (
+                      <div key={key} className="flex justify-between items-center text-xs">
+                         <div className="flex items-center gap-2 text-gray-300">
+                            <img src={`https://api.minecraftitems.xyz/api/item/${key.replace('minecraft:', '')}_spawn_egg`} className="w-4 h-4" onError={(e) => (e.target as HTMLImageElement).style.display = 'none'} />
+                            {formatStatName(key)}
+                         </div>
+                         <div className="text-white font-mono">{val as number}</div>
+                      </div>
+                   ))}
+                </div>
+             </div>
+
+             <div className="bg-[#2a303c] rounded p-4 border border-gray-700 overflow-hidden">
+                <h3 className="text-white text-sm font-bold mb-4 flex items-center gap-2"><FontAwesomeIcon icon={faRunning} className="text-gray-400" /> Blocks Travelled</h3>
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                   {Object.entries(blocksTravelled).map(([key, val]) => (
+                      <div key={key} className="flex justify-between items-center text-xs">
+                         <div className="text-gray-300">{key}</div>
+                         <div className="text-white font-mono">{val}</div>
+                      </div>
+                   ))}
+                </div>
+             </div>
+          </div>
+
           <h2 className="text-xl font-bold text-gray-200 mb-6 border-b border-gray-700 pb-2 flex justify-between items-center">
             Player Logs & Commands
             <button onClick={fetchLogs} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded cursor-pointer transition-colors">
