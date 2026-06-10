@@ -6,9 +6,9 @@ import Button from '@/components/elements/Button';
 import { getPlayerDataUrl, sendCommand } from '../api/files';
 import { ServerContext } from '@/state/server';
 import useFlash from '@/plugins/useFlash';
-import pako from 'pako';
-import * as nbt from 'prismarine-nbt';
 import { Buffer } from 'buffer';
+const pako = require('pako');
+const nbt = require('prismarine-nbt');
 
 const InventorySlot = ({ item }: { item?: any }) => {
   if (!item) {

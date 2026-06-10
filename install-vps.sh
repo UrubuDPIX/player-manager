@@ -186,8 +186,10 @@ build_panel() {
     print_step "Instalando dependências NBT e compilando painel..."
     cd "$PANEL_DIR"
     
-    print_info "Instalando pako e prismarine-nbt no painel..."
-    yarn add pako prismarine-nbt@1.6.0 buffer @types/pako -D || npm install pako prismarine-nbt@1.6.0 buffer @types/pako --save-dev
+    print_info "Instalando dependências no painel..."
+    yarn remove prismarine-nbt pako buffer @types/pako 2>/dev/null || true
+    npm uninstall prismarine-nbt pako buffer @types/pako 2>/dev/null || true
+    yarn add pako prismarine-nbt@1.6.0 buffer || npm install pako prismarine-nbt@1.6.0 buffer
 
     print_info "Limpando cache de build antigo..."
     rm -rf public/assets/* 2>/dev/null || true
