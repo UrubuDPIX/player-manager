@@ -205,7 +205,13 @@ export default ({ player, onBack }: Props) => {
       .filter(line => 
         line.includes('INFO') && 
         line.includes(player.name) && 
-        (line.includes('<' + player.name + '>') || line.includes('issued server command:') || line.includes('[Not Secure] <' + player.name + '>') || line.includes('Async Chat Thread'))
+        (
+          line.includes('<' + player.name + '>') || 
+          line.includes('issued') || 
+          line.includes('command') || 
+          line.includes('[Not Secure]') || 
+          line.includes('Async Chat Thread')
+        )
       )
       .map(line => {
         // Remove the thread/class noise: [10Jun2026 01:13:55.391] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: <Okairu> msg
@@ -504,7 +510,7 @@ export default ({ player, onBack }: Props) => {
             ) : (
               <ul className="space-y-2">
                 {playerLogs.map((log, i) => {
-                  const isCommand = log.includes('issued server command:');
+                  const isCommand = log.includes('issued') || log.includes('command');
                   return (
                     <li key={i} className={`border-l-2 pl-3 py-1 ${isCommand ? 'border-yellow-500 text-yellow-200 bg-yellow-900/10' : 'border-blue-500 text-gray-100 bg-gray-800/30'}`}>
                       {log}

@@ -1,0 +1,35 @@
+plugins {
+    id 'net.minecraftforge.gradle' version '6.1.2'
+    id 'java'
+}
+
+group = 'com.urubudpix'
+version = '1.0.0'
+archivesBaseName = 'playermanagersync-forge'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+minecraft {
+    version = '1.20.4-45.1.0'
+    mappings channel: 'official', version: '1.20.4'
+    runs {
+        client {
+            workingDirectory = file('run')
+        }
+        server {
+            workingDirectory = file('run')
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.20.4-45.1.0'
+}
