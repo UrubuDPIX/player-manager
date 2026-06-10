@@ -8,7 +8,7 @@ import { ServerContext } from '@/state/server';
 import useFlash from '@/plugins/useFlash';
 import { Buffer } from 'buffer';
 const pako = require('pako');
-const nbt = require('prismarine-nbt');
+const nbt = require('nbt');
 
 const InventorySlot = ({ item }: { item?: any }) => {
   if (!item) {
@@ -86,8 +86,14 @@ export default ({ player, onBack }: Props) => {
         // Decompress GZIP
         const decompressed = pako.inflate(new Uint8Array(arrayBuffer));
         
-        // Parse NBT
-        const { parsed } = (await nbt.parseUncompressed(Buffer.from(decompressed))) as any;
+        // Parse NBT using nbt library
+        const parsed = await new Promise((resolve, reject) => {
+          nbt.parse(Buffer.from(decompressed), (error: any, data: any) => {
+            if (error) reject(error);
+            else resolve(data);
+          });
+        });
+        
         setNbtData(parsed);
       } catch (error) {
         console.error('Failed to parse NBT:', error);
