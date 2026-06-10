@@ -91,7 +91,7 @@ const InventorySlot = ({ item, className = "" }: { item?: any, className?: strin
 
   return (
     <div 
-      className={`aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] relative flex items-center justify-center p-1 ${className} ${isEnchanted ? 'enchanted' : ''}`}
+      className={`w-10 h-10 md:w-12 md:h-12 bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] relative flex items-center justify-center ${className} ${isEnchanted ? 'enchanted' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -439,7 +439,7 @@ export default ({ player, onBack }: Props) => {
       {activeTab === 'inventory' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           {/* Left Side: Avatar & Armor & Main Inventory */}
-          <div className="bg-[#c6c6c6] border-[4px] border-[#555555] border-t-white border-l-white p-4" style={{ imageRendering: 'pixelated' }}>
+          <div className="bg-[#c6c6c6] border-[4px] border-[#555555] border-t-white border-l-white p-4 w-max mx-auto" style={{ imageRendering: 'pixelated' }}>
             <div className="flex gap-4 mb-4">
               {/* Armor Slots */}
               <div className="flex flex-col gap-1 w-12 shrink-0">
