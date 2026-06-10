@@ -183,61 +183,85 @@ const panelDir = process.argv[2];
   fs.writeFileSync(srPath, c);
 })();
 
-// 3. Patch ServerElements.tsx (Navbar - For older Pterodactyl versions)
-(function patchServerElements() {
-  const sePath = path.join(panelDir, 'resources/scripts/routers/ServerElements.tsx');
-  if (!fs.existsSync(sePath)) return;
-  let c = fs.readFileSync(sePath, 'utf8');
-  
-  // Limpa injecoes antigas se existirem
-  c = c.replace(/<NavLink[^>]*\/players[^>]*>[\s\S]*?<\/NavLink>\n?/g, '');
-  
-  // Remover skip check de routes.server.map, pois Pterodactyl usa mapa apenas no mobile e fixo no desktop
-  
-  let pm = c.match(/<NavLink[^>]*\/modpacks[^>]*>[\s\S]*?<\/NavLink>/i);
-  if (!pm) {
-      console.log('DEBUG: Não achou /modpacks em NavLink. Procurando users...');
-      pm = c.match(/<NavLink[^>]*\/users[^>]*>[\s\S]*?<\/NavLink>/i);
-  }
-  if (!pm) {
-      console.log('DEBUG: Não achou /users em NavLink. Procurando files...');
-      pm = c.match(/<NavLink[^>]*\/files[^>]*>[\s\S]*?<\/NavLink>/i);
-  }
-  
-  if (!pm) {
-      console.log('⚠ Não foi possível encontrar a aba Modpacks, Users ou Files no ServerElements.tsx. A injeção manual na Navbar Desktop falhou.');
-      // DEBUG: Verify what NavLinks DO exist
-      const allNavs = [...c.matchAll(/<NavLink[^>]*>[\s\S]*?<\/NavLink>/gi)];
-      console.log('DEBUG: Total de NavLinks no arquivo: ' + allNavs.length);
-      if (allNavs.length > 0) {
-          console.log('DEBUG: Último NavLink encontrado: ' + allNavs[allNavs.length - 1][0].substring(0, 100));
+// 3. Patch the REAL Navbar Component (Brute-force find for custom themes)
+(function patchNavbar() {
+  const dirToSearch = path.join(panelDir, 'resources/scripts');
+  let targetFile = null;
+  let pmMatch = null;
+  let fileContent = '';
+
+  function searchFiles(dir) {
+    if (targetFile) return;
+    const files = fs.readdirSync(dir);
+    for (const file of files) {
+      if (targetFile) break;
+      const fullPath = path.join(dir, file);
+      const stat = fs.statSync(fullPath);
+      if (stat.isDirectory()) {
+        searchFiles(fullPath);
+      } else if (fullPath.endsWith('.tsx')) {
+        const c = fs.readFileSync(fullPath, 'utf8');
+        // We look for a file that hardcodes <NavLink to={.../modpacks} or files/users
+        let m = c.match(/<NavLink[^>]*to=\{`\$\{match\.url\}\/modpacks`\}[^>]*>[\s\S]*?<\/NavLink>/i) ||
+                c.match(/<NavLink[^>]*to=\{`\$\{match\.url\}\/files`\}[^>]*>[\s\S]*?<\/NavLink>/i) ||
+                c.match(/<NavLink[^>]*to=\{`\$\{match\.url\}\/users`\}[^>]*>[\s\S]*?<\/NavLink>/i);
+                
+        // Also check for <Link> or other custom components just in case
+        if (!m) {
+            m = c.match(/<Link[^>]*to=\{`\$\{match\.url\}\/modpacks`\}[^>]*>[\s\S]*?<\/Link>/i) ||
+                c.match(/<Link[^>]*to=\{`\$\{match\.url\}\/files`\}[^>]*>[\s\S]*?<\/Link>/i);
+        }
+
+        // Make sure it's not ServerElements if ServerElements only has a map (like we saw in debug)
+        if (m && !c.includes('<NavLink to={to(route.path, true)}')) {
+            targetFile = fullPath;
+            pmMatch = m;
+            fileContent = c;
+            console.log('DEBUG: Encontrou a Navbar em: ' + fullPath);
+            break;
+        }
       }
+    }
+  }
+
+  searchFiles(dirToSearch);
+
+  if (!targetFile) {
+      console.log('⚠ Não foi possível localizar o arquivo da Navbar principal! Temas customizados podem usar estruturas diferentes.');
       return;
   }
+
+  // Clean up old injection
+  fileContent = fileContent.replace(/<NavLink[^>]*to=\{`\$\{match\.url\}\/players`\}[^>]*>[\s\S]*?<\/NavLink>\n?/gi, '');
+  fileContent = fileContent.replace(/<Link[^>]*to=\{`\$\{match\.url\}\/players`\}[^>]*>[\s\S]*?<\/Link>\n?/gi, '');
+
+  const ls = fileContent.lastIndexOf('\n', pmMatch.index) + 1;
+  const ind = (fileContent.slice(ls, pmMatch.index).match(/^(\s*)/) || ['',''])[1];
   
-  if (pm) {
-    console.log('DEBUG: Match encontrado! Injetando após a tab.');
-    const ls = c.lastIndexOf('\n', pm.index) + 1;
-    const ind = (c.slice(ls, pm.index).match(/^(\s*)/) || ['',''])[1];
-    const inj = '\n' + ind + '<NavLink to={`${match.url}/players`}>' +
-                '\n' + ind + '    <FontAwesomeIcon icon={faUsers} /> Players' +
-                '\n' + ind + '</NavLink>';
+  const isLink = pmMatch[0].startsWith('<Link');
+  const tag = isLink ? 'Link' : 'NavLink';
+  
+  const inj = '\n' + ind + '<' + tag + ' to={`${match.url}/players`}>' +
+              '\n' + ind + '    <FontAwesomeIcon icon={faUsers} /> Players' +
+              '\n' + ind + '</' + tag + '>';
+  
+  fileContent = fileContent.slice(0, pmMatch.index + pmMatch[0].length) + inj + fileContent.slice(pmMatch.index + pmMatch[0].length);
     
-    // Inserir APOS a tab encontrada, garantindo que nao esta dentro do loop map
-    c = c.slice(0, pm.index + pm[0].length) + inj + c.slice(pm.index + pm[0].length);
-      
-      if (!c.includes('faUsers')) {
-          const fm = c.match(/import\s+\{[^}]*\}\s+from\s+['"]@fortawesome\/free-solid-svg-icons['"];?/);
-          if (fm) {
-              c = c.slice(0, fm.index) + fm[0].replace('{', '{ faUsers, ') + c.slice(fm.index + fm[0].length);
-          } else {
-              c = "import { faUsers } from '@fortawesome/free-solid-svg-icons';\n" + c;
-          }
+  if (!fileContent.includes('faUsers')) {
+      const fm = fileContent.match(/import\s+\{[^}]*\}\s+from\s+['"]@fortawesome\/free-solid-svg-icons['"];?/);
+      if (fm) {
+          fileContent = fileContent.slice(0, fm.index) + fm[0].replace('{', '{ faUsers, ') + fileContent.slice(fm.index + fm[0].length);
+      } else {
+          fileContent = "import { faUsers } from '@fortawesome/free-solid-svg-icons';\n" + fileContent;
       }
-      console.log('✓ NavLink de Players injetado no ServerElements.tsx');
   }
   
-  fs.writeFileSync(sePath, c);
+  if (!fileContent.includes('FontAwesomeIcon')) {
+      fileContent = "import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';\n" + fileContent;
+  }
+  
+  console.log('✓ Botão Players injetado com sucesso no arquivo: ' + path.basename(targetFile));
+  fs.writeFileSync(targetFile, fileContent);
 })();
 JSEOF
     } > "$JS"
