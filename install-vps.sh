@@ -151,7 +151,10 @@ const panelDir = process.argv[2];
   c = c.replace(/<NavLink[^>]*\/players[^>]*>[\s\S]*?<\/NavLink>\n?/g, '');
   
   if (!c.includes('/players')) {
-    let pm = c.match(/<NavLink[^>]*\/users[^>]*>[\s\S]*?<\/NavLink>/);
+    let pm = c.match(/<NavLink[^>]*\/modpacks[^>]*>[\s\S]*?<\/NavLink>/);
+    if (!pm) {
+        pm = c.match(/<NavLink[^>]*\/users[^>]*>[\s\S]*?<\/NavLink>/);
+    }
     if (!pm) {
         pm = c.match(/<NavLink[^>]*\/files[^>]*>[\s\S]*?<\/NavLink>/);
     }
