@@ -91,7 +91,7 @@ const InventorySlot = ({ item, className = "" }: { item?: any, className?: strin
 
   return (
     <div 
-      className={`w-10 h-10 md:w-12 md:h-12 bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] relative flex items-center justify-center ${className} ${isEnchanted ? 'enchanted' : ''}`}
+      className={`w-10 h-10 md:w-12 md:h-12 min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px] shrink-0 bg-[#8b8b8b] border-[2px] border-[#373737] border-t-[#ffffff] border-l-[#ffffff] relative flex items-center justify-center ${className} ${isEnchanted ? 'enchanted' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
