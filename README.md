@@ -9,7 +9,7 @@ Se você hospeda seu painel Jexactyl ou Pterodactyl em uma VPS (Oracle, AWS, Dig
 1. Acesse sua máquina via SSH.
 2. Execute o comando abaixo como root:
 ```bash
-curl -sSL https://raw.githubusercontent.com/SEU-USUARIO/player-manager/main/install-vps.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/UrubuDPIX/player-manager/main/install-vps.sh | sudo bash
 ```
 *(Não se esqueça de atualizar a URL acima após subir o código para o seu GitHub)*
 

@@ -13,7 +13,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 PANEL_DIR=""
-REPO_URL="${REPO_URL:-https://github.com/SEU-USUARIO/player-manager}"
+REPO_URL="${REPO_URL:-https://github.com/UrubuDPIX/player-manager}"
 TEMP_DIR="/tmp/player-manager-$(date +%s)"
 
 print_banner() {
