@@ -21,16 +21,10 @@ const InventorySlot = ({ item }: { item?: any }) => {
   return (
     <div className="aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] relative flex items-center justify-center p-1">
       <img 
-        src={`https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.1/items/${id}.png`} 
+        src={`https://api.minecraftitems.xyz/api/item/${id}`} 
         alt={id} 
         className="w-full h-full object-contain"
         style={{ imageRendering: 'pixelated' }}
-        onError={(e) => {
-           const target = e.target as HTMLImageElement;
-           if (!target.src.includes('blocks')) {
-             target.src = `https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.1/blocks/${id}.png`;
-           }
-        }}
       />
       {count > 1 && (
         <span className="absolute bottom-0 right-1 text-white font-bold" style={{ fontSize: '0.7rem', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000' }}>
