@@ -319,12 +319,6 @@ export default ({ player, onBack }: Props) => {
                 {gamemode === 1 ? 'Creative' : gamemode === 2 ? 'Adventure' : gamemode === 3 ? 'Spectator' : 'Survival'}
               </span>
             </div>
-            {showStats && (
-              <div className="mt-3 flex flex-col gap-1">
-                <HealthBar health={health} />
-                <FoodBar food={foodLevel} />
-              </div>
-            )}
             <div className="text-xs text-green-500 mt-2 flex items-center gap-2">
               <span>Auto-syncing every 10s</span>
               <button onClick={() => fetchNbt(false, true)} className="hover:text-white transition-colors cursor-pointer" title="Force Save & Sync">
@@ -429,17 +423,15 @@ export default ({ player, onBack }: Props) => {
               </div>
             </div>
             
-            <div className="flex justify-between items-center bg-black/40 p-4 rounded">
-              <div className="text-red-500 text-xl" title={`Health: ${health}`}>
-                {loadingNbt ? 'Loading...' : '♥'.repeat(Math.ceil(health / 2))}
+            {showStats && (
+              <div className="flex justify-between items-center bg-black/40 p-4 rounded">
+                <HealthBar health={health} />
+                <div className="text-green-500 font-bold text-center">
+                  Level {loadingNbt ? '...' : nbtData?.value?.XpLevel?.value || 0}
+                </div>
+                <FoodBar food={foodLevel} />
               </div>
-              <div className="text-green-500 font-bold text-center">
-                Level {loadingNbt ? '...' : nbtData?.value?.XpLevel?.value || 0}
-              </div>
-              <div className="text-yellow-600 text-xl" title={`Food: ${foodLevel}`}>
-                {loadingNbt ? 'Loading...' : '🍗'.repeat(Math.ceil(foodLevel / 2))}
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
