@@ -69,7 +69,7 @@ export default ({ player, onBack }: Props) => {
       addFlash({ type: 'success', key: 'players', message: successMessage });
     } catch (error) {
       console.error(error);
-      addFlash({ type: 'error', key: 'players', message: `Failed to execute command: ${error}` });
+      addFlash({ type: 'danger', key: 'players', message: `Failed to execute command: ${error}` });
     }
   };
 
@@ -87,7 +87,7 @@ export default ({ player, onBack }: Props) => {
         const decompressed = pako.inflate(new Uint8Array(arrayBuffer));
         
         // Parse NBT
-        const { parsed } = await nbt.parseUncompressed(Buffer.from(decompressed));
+        const { parsed } = (await nbt.parseUncompressed(Buffer.from(decompressed))) as any;
         setNbtData(parsed);
       } catch (error) {
         console.error('Failed to parse NBT:', error);
