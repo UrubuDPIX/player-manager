@@ -115,7 +115,7 @@ const InventorySlot = ({ item, className = "" }: { item?: any, className?: strin
       <img 
         src={`https://api.minecraftitems.xyz/api/item/${id}`} 
         alt={id} 
-        className="w-full h-full object-contain"
+        className="absolute inset-0 m-auto w-[85%] h-[85%] object-contain"
         style={{ imageRendering: 'pixelated' }}
         onError={(e) => {
           const target = e.target as HTMLImageElement;
