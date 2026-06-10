@@ -14,7 +14,21 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, className = "" }: { item?:
   const [isHovered, setIsHovered] = useState(false);
 
   if (!item) {
-    return <div className={`aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] ${className}`}></div>;
+    return (
+      <div 
+        className={`w-10 h-10 md:w-12 md:h-12 min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px] shrink-0 aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] ${className}`}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (slotIndex !== undefined && onMoveItem) {
+            const fromSlot = parseInt(e.dataTransfer.getData('text/plain'));
+            if (!isNaN(fromSlot) && fromSlot !== slotIndex) {
+              onMoveItem(fromSlot, slotIndex);
+            }
+          }
+        }}
+      ></div>
+    );
   }
   
   const id = item.id?.value?.replace('minecraft:', '');
