@@ -437,9 +437,9 @@ export default ({ player, onBack }: Props) => {
       </div>
 
       {activeTab === 'inventory' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Side: Avatar & Hotbar/Armor */}
-          <div className="bg-[#c6c6c6] p-4 rounded shadow-inner" style={{ imageRendering: 'pixelated' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* Left Side: Avatar & Armor & Main Inventory */}
+          <div className="bg-[#c6c6c6] border-[4px] border-[#555555] border-t-white border-l-white p-4" style={{ imageRendering: 'pixelated' }}>
             <div className="flex gap-4 mb-4">
               {/* Armor Slots */}
               <div className="flex flex-col gap-1 w-12 shrink-0">
@@ -490,7 +490,7 @@ export default ({ player, onBack }: Props) => {
           {/* Right Side: Ender Chest & Stats & Hotbar */}
           <div className="flex flex-col items-center">
             {/* Ender Chest 3x9 */}
-            <div className="bg-[#c6c6c6] p-3 rounded shadow-inner mb-6 w-max" style={{ imageRendering: 'pixelated' }}>
+            <div className="bg-[#c6c6c6] border-[4px] border-[#555555] border-t-white border-l-white p-2 mb-6 w-max" style={{ imageRendering: 'pixelated' }}>
               <div className="grid grid-cols-9 gap-1">
                 {Array.from({ length: 27 }).map((_, i) => (
                   <InventorySlot key={`ender-${i}`} item={nbtData?.value?.EnderItems?.value?.value?.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} />
@@ -520,7 +520,7 @@ export default ({ player, onBack }: Props) => {
             )}
 
             {/* Hotbar 1x9 */}
-            <div className="bg-[#c6c6c6] p-2 rounded shadow-inner w-max mt-1" style={{ imageRendering: 'pixelated' }}>
+            <div className="bg-[#c6c6c6] border-[4px] border-[#555555] border-t-white border-l-white p-2 w-max mt-1" style={{ imageRendering: 'pixelated' }}>
               <div className="grid grid-cols-9 gap-1">
                 {Array.from({ length: 9 }).map((_, i) => (
                   <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} />
