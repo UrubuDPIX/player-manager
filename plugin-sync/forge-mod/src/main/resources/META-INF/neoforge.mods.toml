@@ -1,0 +1,9 @@
+modLoader="javafml"
+loaderVersion="[2,) // NeoForge 1.21.x"
+license="MIT"
+
+[[mods]]
+modId="playermanagersync"
+version="1.0.0"
+displayName="PlayerManagerSync NeoForge"
+description='Syncs player inventory data for Jexactyl.'
