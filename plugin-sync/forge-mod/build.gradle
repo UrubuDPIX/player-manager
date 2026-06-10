@@ -1,46 +1,78 @@
-buildscript {
-    repositories {
-        maven { url = uri('https://maven.minecraftforge.net') }
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:6.0.54'
-    }
-}
-
 plugins {
     id 'java'
 }
 
-apply plugin: 'net.minecraftforge.gradle'
-
 group = 'com.urubudpix'
 version = '1.0.0'
-archivesBaseName = 'playermanagersync-forge'
+
+// Version mapping - define early
+Map versionMappings = [
+    '1.21.4': '21.4.0-beta',
+    '1.21.1': '21.1.94',
+    '1.21.0': '21.0.0-beta',
+    '1.20.6': '20.6.0',
+    '1.20.4': '20.4.0',
+    '1.20.1': '20.1.139',
+    '1.19.4': '19.4.0',
+    '1.19.2': '19.2.0',
+    '1.18.2': '18.2.0',
+    '1.16.5': '16.5.0'
+]
+
+// Get MC version (default to latest)
+String mcVersion = project.hasProperty('mcVersion') ? project.getProperty('mcVersion') : '1.21.1'
+String neoforgeVersion = versionMappings[mcVersion] ?: '21.1.94'
+
+// Set archive name
+archivesBaseName = "playermanagersync-neoforge-mc${mcVersion}"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
-minecraft {
-    version = '1.20.4-45.1.0'
-    mappings channel: 'official', version: '1.20.4'
-    runs {
-        client {
-            workingDirectory = file('run')
-        }
-        server {
-            workingDirectory = file('run')
-        }
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
 repositories {
     mavenCentral()
+    maven {
+        name = "NeoForged"
+        url = "https://maven.neoforged.net/releases"
+    }
+    maven {
+        name = "Minecraft"
+        url = "https://libraries.minecraft.net"
+    }
 }
 
+// NeoForge mod dependencies
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.20.4-45.1.0'
+    // Log4j for logging
+    implementation 'org.apache.logging.log4j:log4j-api:2.19.0'
+    implementation 'org.apache.logging.log4j:log4j-core:2.19.0'
+    
+    // Note: NeoForge/Forge dependencies would go here
+    // Currently using reflection-based approach for compatibility
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': project.name,
+                   'Implementation-Version': project.version,
+                   'Implementation-Vendor': 'Urubudpix',
+                   'Minecraft-Version': mcVersion,
+                   'NeoForge-Version': neoforgeVersion
+    }
+}
+
+// Task to show version info
+task showVersions {
+    doLast {
+        println "Available Minecraft versions for NeoForge:"
+        versionMappings.each { mc, nf ->
+            println "  - MC ${mc} (NeoForge ${nf})"
+        }
+        println "\nTo build for a specific version:"
+        println "  ./gradlew build -PmcVersion=1.20.4"
+        println "\nCurrent build: MC ${mcVersion} (NeoForge ${neoforgeVersion})"
+    }
 }

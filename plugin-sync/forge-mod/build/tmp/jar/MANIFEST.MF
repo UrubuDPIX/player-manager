@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Implementation-Title: playermanagersync-forge
+Implementation-Version: 1.0.0
+Implementation-Vendor: Urubudpix
+Minecraft-Version: 1.16.5
+NeoForge-Version: 16.5.0
+

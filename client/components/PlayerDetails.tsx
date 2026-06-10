@@ -3,7 +3,7 @@ import PageContentBlock from '@/components/elements/PageContentBlock';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faTrash, faCog, faGavel, faCrown, faUserSlash, faRunning, faWrench, faSkull, faShieldAlt, faSync } from '@fortawesome/free-solid-svg-icons';
 import Button from '@/components/elements/Button';
-import { getPlayerDataUrl, sendCommand, getServerLog } from '../api/files';
+import { getPlayerDataUrl, sendCommand, getServerLog, getPlayerStats, listPlayerData } from '../api/files';
 import { ServerContext } from '@/state/server';
 import useFlash from '@/plugins/useFlash';
 import { Buffer } from 'buffer';
@@ -138,6 +138,10 @@ export default ({ player, onBack }: Props) => {
   const server = ServerContext.useStoreState(state => state.server.data!);
   const { addFlash, clearFlashes } = useFlash();
   const [nbtData, setNbtData] = useState<any>(null);
+  const [statsData, setStatsData] = useState<any>(null);
+  const [firstPlayed, setFirstPlayed] = useState<string>('Unknown');
+  const [lastSeen, setLastSeen] = useState<string>('Unknown');
+  const [isOnline, setIsOnline] = useState(player.online);
   const [loadingNbt, setLoadingNbt] = useState(true);
   const [activeTab, setActiveTab] = useState<'inventory' | 'manage' | 'details' | 'logs'>('inventory');
   
@@ -181,7 +185,31 @@ export default ({ player, onBack }: Props) => {
         });
       });
       
+      const stats = await getPlayerStats(server.uuid, player.uuid);
+      const { files, serverTime } = await listPlayerData(server.uuid);
+      
+      const playerFile = files.find((f: any) => f.attributes.name === `${player.uuid}.dat`);
+      if (playerFile) {
+        const modTime = new Date(playerFile.attributes.modified_at).getTime();
+        setIsOnline((serverTime - modTime) < 25000);
+        
+        const spZone = 'America/Sao_Paulo';
+        const formatOptions: Intl.DateTimeFormatOptions = { 
+          timeZone: spZone, day: '2-digit', month: '2-digit', year: 'numeric', 
+          hour: '2-digit', minute: '2-digit', second: '2-digit' 
+        };
+        
+        try {
+          // Fallback creation time se o Linux não manter (algumas VMs perdem BTime)
+          setFirstPlayed(new Date(playerFile.attributes.created_at).toLocaleString('pt-BR', formatOptions));
+          setLastSeen(new Date(playerFile.attributes.modified_at).toLocaleString('pt-BR', formatOptions));
+        } catch (e) {}
+      } else {
+        setIsOnline(false);
+      }
+
       setNbtData(parsed);
+      setStatsData(stats);
     } catch (error) {
       console.error('Failed to parse NBT:', error);
     } finally {
@@ -241,6 +269,12 @@ export default ({ player, onBack }: Props) => {
 
   const showStats = gamemode !== 1 && gamemode !== 3; // Hide in Creative and Spectator
   const isOp = player.isOp;
+
+  const playtimeTicks = statsData?.stats?.['minecraft:custom']?.['minecraft:play_time'] || 0;
+  const playtimeSeconds = Math.floor(playtimeTicks / 20);
+  const hours = Math.floor(playtimeSeconds / 3600);
+  const minutes = Math.floor((playtimeSeconds % 3600) / 60);
+  const playtimeString = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 
   const HealthBar = ({ health }: { health: number }) => {
     const maxHearts = Math.max(10, Math.ceil(health / 2));
@@ -311,8 +345,8 @@ export default ({ player, onBack }: Props) => {
           <div>
             <div className="text-sm text-gray-400 font-mono mb-2">{player.uuid}</div>
             <div className="flex gap-2">
-              <span className={`px-2 py-1 text-xs rounded border ${player.online ? 'bg-green-900 text-green-300 border-green-700' : 'bg-gray-700 text-gray-300 border-gray-600'}`}>
-                {player.online ? 'Online' : 'Offline'}
+              <span className={`px-2 py-1 text-xs rounded border ${isOnline ? 'bg-green-900 text-green-300 border-green-700' : 'bg-gray-700 text-gray-300 border-gray-600'}`}>
+                {isOnline ? 'Online' : 'Offline'}
               </span>
               {isOp && <span className="px-2 py-1 bg-yellow-900 text-yellow-300 text-xs rounded border border-yellow-700">OP</span>}
               <span className="px-2 py-1 bg-blue-900 text-blue-300 text-xs rounded border border-blue-700">
@@ -337,19 +371,19 @@ export default ({ player, onBack }: Props) => {
         <div className="grid grid-cols-4 gap-4 text-center border-t border-gray-700 pt-6">
           <div>
             <div className="text-sm text-gray-400">First Played</div>
-            <div className="font-semibold text-gray-200">21.01.1970, 13:15:40</div>
+            <div className="font-semibold text-gray-200">{firstPlayed}</div>
           </div>
           <div>
             <div className="text-sm text-gray-400">Last Login</div>
-            <div className="font-semibold text-gray-200">21.01.1970, 13:22:45</div>
+            <div className="font-semibold text-gray-200">{lastSeen}</div>
           </div>
           <div>
             <div className="text-sm text-gray-400">Last Seen</div>
-            <div className="font-semibold text-gray-200">21.01.1970, 13:22:46</div>
+            <div className="font-semibold text-gray-200">{lastSeen}</div>
           </div>
           <div>
             <div className="text-sm text-gray-400">Playtime</div>
-            <div className="font-semibold text-gray-200">1h 26m</div>
+            <div className="font-semibold text-gray-200">{playtimeString}</div>
           </div>
         </div>
       </div>

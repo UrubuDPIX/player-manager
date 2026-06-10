@@ -32,11 +32,11 @@ export default () => {
     const fetchPlayers = async () => {
       try {
         setLoading(true);
-        const [cache, files] = await Promise.all([
+        const [cache, { files, serverTime }] = await Promise.all([
           getUserCache(server.uuid),
           listPlayerData(server.uuid)
         ]);
-        
+
         const fileMods: Record<string, number> = {};
         files.forEach((f: any) => {
           if (f.attributes?.name?.endsWith('.dat')) {
@@ -44,13 +44,11 @@ export default () => {
             fileMods[uuid] = new Date(f.attributes.modified_at).getTime();
           }
         });
-        
-        const now = Date.now();
 
         const mappedPlayers: Player[] = cache.map(entry => {
           const lastMod = fileMods[entry.uuid] || 0;
-          // Plugin saves every 5 seconds. If modified in last 25 seconds, player is online.
-          const isOnline = (now - lastMod) < 25000;
+          // Se foi modificado nos últimos 25s (em relação ao horário do servidor VPS), tá online
+          const isOnline = (serverTime - lastMod) < 25000;
           
           return {
             uuid: entry.uuid,

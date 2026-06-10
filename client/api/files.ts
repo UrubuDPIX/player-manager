@@ -32,15 +32,28 @@ export const getPlayerDataUrl = async (uuid: string, playerUuid: string, worldNa
   return data.attributes.url;
 };
 
-export const listPlayerData = async (uuid: string, worldName: string = 'world'): Promise<any[]> => {
+export const getPlayerStats = async (uuid: string, playerUuid: string, worldName: string = 'world'): Promise<any> => {
   try {
-    const { data } = await http.get(`/api/client/servers/${uuid}/files/list`, {
+    const { data } = await http.get(`/api/client/servers/${uuid}/files/contents`, {
+      params: { file: `${worldName}/stats/${playerUuid}.json` },
+    });
+    return typeof data === 'string' ? JSON.parse(data) : data;
+  } catch (error) {
+    console.error('Failed to get player stats:', error);
+    return null;
+  }
+};
+
+export const listPlayerData = async (uuid: string, worldName: string = 'world'): Promise<{ files: any[], serverTime: number }> => {
+  try {
+    const res = await http.get(`/api/client/servers/${uuid}/files/list`, {
       params: { directory: `${worldName}/playerdata` },
     });
-    return data.data;
+    const serverTime = res.headers.date ? new Date(res.headers.date).getTime() : Date.now();
+    return { files: res.data.data, serverTime };
   } catch (error) {
     console.error('Failed to list playerdata:', error);
-    return [];
+    return { files: [], serverTime: Date.now() };
   }
 };
 
