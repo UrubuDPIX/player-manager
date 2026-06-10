@@ -29,14 +29,9 @@ public class PlayerManagerSync {
             tickCount = 0;
             MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
             if (server != null) {
-                int count = 0;
-                for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                    // This forces a save to world/playerdata/UUID.dat
-                    server.getPlayerList().save(player);
-                    count++;
-                }
-                if (count > 0) {
-                    LOGGER.debug("Saved inventory data for " + count + " players.");
+                if (!server.getPlayerList().getPlayers().isEmpty()) {
+                    server.getPlayerList().saveAll();
+                    LOGGER.debug("Saved inventory data for all online players.");
                 }
             }
         }
