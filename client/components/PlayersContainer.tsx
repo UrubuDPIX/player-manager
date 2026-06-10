@@ -77,17 +77,6 @@ export default () => {
         </div>
       </div>
 
-      <div className="flex gap-4 mb-8">
-        <Button color="primary" className="bg-indigo-600 hover:bg-indigo-700">
-          <FontAwesomeIcon icon={faPlus} className="mr-2" /> Add to Whitelist
-        </Button>
-        <Button color="red" className="bg-red-600 hover:bg-red-700">
-          <FontAwesomeIcon icon={faBan} className="mr-2" /> Ban Player
-        </Button>
-        <Button color="primary" className="bg-indigo-600 hover:bg-indigo-700">
-          <FontAwesomeIcon icon={faStar} className="mr-2" /> Make Operator
-        </Button>
-      </div>
 
       <h2 className="text-xl font-semibold text-green-500 mb-4">Online Players ({players.filter(p => p.online).length})</h2>
       
@@ -100,7 +89,7 @@ export default () => {
           >
             <div className="relative mr-4">
               <img 
-                src={`https://crafatar.com/avatars/${player.uuid}?overlay=true&size=64`} 
+                src={`https://mc-heads.net/avatar/${player.uuid}/64`} 
                 alt={player.name} 
                 className="w-16 h-16 rounded"
               />

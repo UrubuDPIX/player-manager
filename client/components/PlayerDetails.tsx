@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PageContentBlock from '@/components/elements/PageContentBlock';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faTrash, faCog, faGavel, faCrown, faUserSlash, faRunning, faWrench, faSkull, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faTrash, faCog, faGavel, faCrown, faUserSlash, faRunning, faWrench, faSkull, faShieldAlt, faSync } from '@fortawesome/free-solid-svg-icons';
 import Button from '@/components/elements/Button';
 import { getPlayerDataUrl, sendCommand } from '../api/files';
 import { ServerContext } from '@/state/server';
@@ -67,36 +67,38 @@ export default ({ player, onBack }: Props) => {
     }
   };
 
-  useEffect(() => {
-    const fetchNbt = async () => {
-      try {
-        setLoadingNbt(true);
-        const downloadUrl = await getPlayerDataUrl(server.uuid, player.uuid);
-        
-        // Fetch the binary file
-        const res = await fetch(downloadUrl);
-        const arrayBuffer = await res.arrayBuffer();
-        
-        // Decompress GZIP
-        const decompressed = pako.inflate(new Uint8Array(arrayBuffer));
-        
-        // Parse NBT using nbt library
-        const parsed = await new Promise((resolve, reject) => {
-          nbt.parse(Buffer.from(decompressed), (error: any, data: any) => {
-            if (error) reject(error);
-            else resolve(data);
-          });
+  const fetchNbt = async (isBackground = false) => {
+    try {
+      if (!isBackground) setLoadingNbt(true);
+      const downloadUrl = await getPlayerDataUrl(server.uuid, player.uuid);
+      
+      // Fetch the binary file
+      const res = await fetch(downloadUrl);
+      const arrayBuffer = await res.arrayBuffer();
+      
+      // Decompress GZIP
+      const decompressed = pako.inflate(new Uint8Array(arrayBuffer));
+      
+      // Parse NBT using nbt library
+      const parsed = await new Promise((resolve, reject) => {
+        nbt.parse(Buffer.from(decompressed), (error: any, data: any) => {
+          if (error) reject(error);
+          else resolve(data);
         });
-        
-        setNbtData(parsed);
-      } catch (error) {
-        console.error('Failed to parse NBT:', error);
-      } finally {
-        setLoadingNbt(false);
-      }
-    };
+      });
+      
+      setNbtData(parsed);
+    } catch (error) {
+      console.error('Failed to parse NBT:', error);
+    } finally {
+      if (!isBackground) setLoadingNbt(false);
+    }
+  };
 
-    fetchNbt();
+  useEffect(() => {
+    fetchNbt(false);
+    const interval = setInterval(() => fetchNbt(true), 10000);
+    return () => clearInterval(interval);
   }, [server.uuid, player.uuid]);
 
   // Extract relevant NBT data safely
@@ -126,7 +128,12 @@ export default ({ player, onBack }: Props) => {
               {player.isOp && <span className="px-2 py-1 bg-yellow-900 text-yellow-300 text-xs rounded border border-yellow-700">OP Lv.4</span>}
               <span className="px-2 py-1 bg-blue-900 text-blue-300 text-xs rounded border border-blue-700">Survival</span>
             </div>
-            <div className="text-xs text-green-500 mt-2">Data in real time</div>
+            <div className="text-xs text-green-500 mt-2 flex items-center gap-2">
+              <span>Auto-syncing every 10s</span>
+              <button onClick={() => fetchNbt(false)} className="hover:text-white transition-colors cursor-pointer" title="Force Sync">
+                <FontAwesomeIcon icon={faSync} className={loadingNbt ? "animate-spin text-gray-400" : ""} />
+              </button>
+            </div>
           </div>
           <div className="flex gap-2">
             <Button className={activeTab === 'inventory' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-700 hover:bg-gray-600'} onClick={() => setActiveTab('inventory')}>Inventory</Button>
