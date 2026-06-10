@@ -189,7 +189,11 @@ build_panel() {
     print_info "Instalando pako e prismarine-nbt no painel..."
     yarn add pako prismarine-nbt buffer || npm install pako prismarine-nbt buffer
 
+    print_info "Limpando cache de build antigo..."
+    rm -rf public/assets/* 2>/dev/null || true
+
     print_info "Construindo frontend (isso pode demorar vários minutos)..."
+    export NODE_OPTIONS=--openssl-legacy-provider
     yarn build:production || npm run build:production
 
     print_success "Painel construído com sucesso!"
