@@ -234,9 +234,64 @@ export default ({ player, onBack }: Props) => {
 
   // Extract relevant NBT data safely
   const pos = nbtData?.value?.Pos?.value?.value || [0, 0, 0];
+  const gamemode = nbtData?.value?.playerGameType?.value ?? 0;
   const health = nbtData?.value?.Health?.value || player.health;
   const foodLevel = nbtData?.value?.foodLevel?.value || player.food;
   const inventory = nbtData?.value?.Inventory?.value?.value || [];
+
+  const showStats = gamemode !== 1 && gamemode !== 3; // Hide in Creative and Spectator
+
+  const HealthBar = ({ health }: { health: number }) => {
+    const maxHearts = Math.max(10, Math.ceil(health / 2));
+    return (
+      <div className="flex gap-0.5 items-center" title={`${health}/20 Health`}>
+        {Array.from({ length: maxHearts }).map((_, i) => {
+          const value = health - i * 2;
+          let type = 'empty';
+          if (value >= 2) type = 'full';
+          else if (value > 0) type = 'half';
+          
+          return (
+            <div key={i} className="relative w-4 h-4 text-[15px] leading-none flex items-center justify-center">
+              <span className="absolute text-gray-700">♥</span>
+              {type === 'full' && <span className="absolute text-red-500 drop-shadow-[0_0_2px_rgba(239,68,68,0.8)]">♥</span>}
+              {type === 'half' && (
+                <span className="absolute text-red-500 drop-shadow-[0_0_2px_rgba(239,68,68,0.8)] overflow-hidden" style={{ width: '50%', left: 0 }}>
+                  ♥
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const FoodBar = ({ food }: { food: number }) => {
+    const maxFood = 10;
+    return (
+      <div className="flex gap-0.5 items-center" title={`${food}/20 Hunger`}>
+        {Array.from({ length: maxFood }).map((_, i) => {
+          const value = food - i * 2;
+          let type = 'empty';
+          if (value >= 2) type = 'full';
+          else if (value > 0) type = 'half';
+          
+          return (
+            <div key={i} className="relative w-4 h-4 text-[13px] leading-none flex items-center justify-center transform scale-x-[-1]">
+              <span className="absolute text-gray-700 opacity-50 grayscale">🍗</span>
+              {type === 'full' && <span className="absolute text-orange-400 drop-shadow-[0_0_2px_rgba(251,146,60,0.8)]">🍗</span>}
+              {type === 'half' && (
+                <span className="absolute text-orange-400 drop-shadow-[0_0_2px_rgba(251,146,60,0.8)] overflow-hidden flex justify-end" style={{ width: '50%', right: 0 }}>
+                  🍗
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
   
   return (
     <PageContentBlock title={`Player - ${player.name}`} showFlashKey={'players'}>
@@ -255,10 +310,20 @@ export default ({ player, onBack }: Props) => {
           <div>
             <div className="text-sm text-gray-400 font-mono mb-2">{player.uuid}</div>
             <div className="flex gap-2">
-              <span className="px-2 py-1 bg-green-900 text-green-300 text-xs rounded border border-green-700">Online</span>
-              {player.isOp && <span className="px-2 py-1 bg-yellow-900 text-yellow-300 text-xs rounded border border-yellow-700">OP Lv.4</span>}
-              <span className="px-2 py-1 bg-blue-900 text-blue-300 text-xs rounded border border-blue-700">Survival</span>
+              <span className={`px-2 py-1 text-xs rounded border ${player.online ? 'bg-green-900 text-green-300 border-green-700' : 'bg-gray-700 text-gray-300 border-gray-600'}`}>
+                {player.online ? 'Online' : 'Offline'}
+              </span>
+              {isOp && <span className="px-2 py-1 bg-yellow-900 text-yellow-300 text-xs rounded border border-yellow-700">OP</span>}
+              <span className="px-2 py-1 bg-blue-900 text-blue-300 text-xs rounded border border-blue-700">
+                {gamemode === 1 ? 'Creative' : gamemode === 2 ? 'Adventure' : gamemode === 3 ? 'Spectator' : 'Survival'}
+              </span>
             </div>
+            {showStats && (
+              <div className="mt-3 flex flex-col gap-1">
+                <HealthBar health={health} />
+                <FoodBar food={foodLevel} />
+              </div>
+            )}
             <div className="text-xs text-green-500 mt-2 flex items-center gap-2">
               <span>Auto-syncing every 10s</span>
               <button onClick={() => fetchNbt(false, true)} className="hover:text-white transition-colors cursor-pointer" title="Force Save & Sync">
