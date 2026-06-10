@@ -10,13 +10,16 @@ import { Buffer } from 'buffer';
 const pako = require('pako');
 const nbt = require('./nbt');
 
-const InventorySlot = ({ item, slotIndex, onMoveItem, className = "" }: { item?: any, slotIndex?: number, onMoveItem?: (from: number, to: number) => void, className?: string }) => {
+const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isHotbarSlot = false, className = "" }: { item?: any, slotIndex?: number, onMoveItem?: (from: number, to: number) => void, isTransparent?: boolean, isHotbarSlot?: boolean, className?: string }) => {
   const [isHovered, setIsHovered] = useState(false);
+
+  const sizeClasses = isHotbarSlot ? 'w-[32px] h-[32px] min-w-[32px] min-h-[32px]' : 'w-10 h-10 md:w-12 md:h-12 min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px]';
+  const bgClasses = isTransparent ? 'bg-transparent' : 'bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff]';
 
   if (!item) {
     return (
       <div 
-        className={`w-10 h-10 md:w-12 md:h-12 min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px] shrink-0 aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] ${className}`}
+        className={`${sizeClasses} shrink-0 aspect-square ${bgClasses} ${className}`}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();
@@ -105,7 +108,7 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, className = "" }: { item?:
 
   return (
     <div 
-      className={`w-10 h-10 md:w-12 md:h-12 min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px] shrink-0 bg-[#8b8b8b] border-[2px] border-[#373737] border-t-[#ffffff] border-l-[#ffffff] relative flex items-center justify-center ${className} ${isEnchanted ? 'enchanted' : ''}`}
+      className={`${sizeClasses} shrink-0 ${bgClasses} relative flex items-center justify-center ${className} ${isEnchanted ? 'enchanted' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       draggable={item ? true : false}
@@ -581,23 +584,51 @@ export default ({ player, onBack }: Props) => {
                 </div>
                 
                 {/* XP Bar */}
-                <div className="relative w-full h-[8px] border-[2px] border-black bg-gray-800 flex items-center justify-center mb-1 shadow-sm">
+                <div 
+                  className="relative mx-auto mt-4 mb-2"
+                  style={{
+                    width: '364px',
+                    height: '10px',
+                    backgroundImage: 'url(https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.1/assets/minecraft/textures/gui/icons.png)',
+                    backgroundSize: '512px 512px',
+                    backgroundPosition: '0px -128px',
+                    imageRendering: 'pixelated'
+                  }}
+                >
                   <div 
-                    className="absolute top-0 left-0 h-full bg-[#80ff20]" 
-                    style={{ width: `${(nbtData?.value?.XpP?.value || 0) * 100}%` }}
+                    className="absolute top-0 left-0 h-full" 
+                    style={{ 
+                      width: `${(nbtData?.value?.XpP?.value || 0) * 100}%`,
+                      backgroundImage: 'url(https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.1/assets/minecraft/textures/gui/icons.png)',
+                      backgroundSize: '512px 512px',
+                      backgroundPosition: '0px -138px',
+                      imageRendering: 'pixelated'
+                    }}
                   ></div>
-                  <span className="relative text-[#80ff20] font-bold z-10" style={{ fontSize: '12px', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000', top: '-10px' }}>
-                    Level {loadingNbt ? '...' : nbtData?.value?.XpLevel?.value || 0}
+                  <span className="absolute w-full text-center font-bold z-10 text-[#80ff20]" style={{ fontSize: '16px', textShadow: '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000', top: '-18px' }}>
+                    {loadingNbt ? '...' : nbtData?.value?.XpLevel?.value || 0}
                   </span>
                 </div>
               </div>
             )}
 
             {/* Hotbar 1x9 */}
-            <div className="bg-[#c6c6c6] border-[4px] border-[#555555] border-t-white border-l-white p-2 w-max mt-1" style={{ imageRendering: 'pixelated' }}>
-              <div className="grid grid-cols-9 gap-1">
+            <div 
+              className="relative w-max mt-1 mx-auto" 
+              style={{ 
+                width: '364px',
+                height: '44px',
+                backgroundImage: 'url(https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.1/assets/minecraft/textures/gui/widgets.png)',
+                backgroundSize: '512px 512px',
+                backgroundPosition: '0px 0px',
+                imageRendering: 'pixelated',
+                paddingTop: '6px',
+                paddingLeft: '6px'
+              }}
+            >
+              <div className="grid grid-cols-9 gap-[8px]">
                 {Array.from({ length: 9 }).map((_, i) => (
-                  <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} slotIndex={i} onMoveItem={handleMoveItem} />
+                  <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} slotIndex={i} onMoveItem={handleMoveItem} isTransparent={true} isHotbarSlot={true} />
                 ))}
               </div>
             </div>
