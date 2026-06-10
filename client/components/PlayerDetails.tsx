@@ -327,7 +327,7 @@ export default ({ player, onBack }: Props) => {
   const HealthBar = ({ health }: { health: number }) => {
     const maxHearts = Math.max(10, Math.ceil(health / 2));
     return (
-      <div className="flex gap-0.5 items-center" title={`${health}/20 Health`}>
+      <div className="flex gap-[2px] items-center" title={`${health}/20 Health`}>
         {Array.from({ length: maxHearts }).map((_, i) => {
           const value = health - i * 2;
           let type = 'empty';
@@ -335,7 +335,7 @@ export default ({ player, onBack }: Props) => {
           else if (value > 0) type = 'half';
           
           return (
-            <div key={i} className="relative w-4 h-4 text-[15px] leading-none flex items-center justify-center">
+            <div key={i} className="relative w-5 h-5 text-[18px] leading-none flex items-center justify-center">
               <span className="absolute text-gray-700">♥</span>
               {type === 'full' && <span className="absolute text-red-500 drop-shadow-[0_0_2px_rgba(239,68,68,0.8)]">♥</span>}
               {type === 'half' && (
@@ -353,7 +353,7 @@ export default ({ player, onBack }: Props) => {
   const FoodBar = ({ food }: { food: number }) => {
     const maxFood = 10;
     return (
-      <div className="flex gap-0.5 items-center" title={`${food}/20 Hunger`}>
+      <div className="flex gap-[2px] items-center" title={`${food}/20 Hunger`}>
         {Array.from({ length: maxFood }).map((_, i) => {
           const value = food - i * 2;
           let type = 'empty';
@@ -361,7 +361,7 @@ export default ({ player, onBack }: Props) => {
           else if (value > 0) type = 'half';
           
           return (
-            <div key={i} className="relative w-4 h-4 text-[13px] leading-none flex items-center justify-center transform scale-x-[-1]">
+            <div key={i} className="relative w-5 h-5 text-[16px] leading-none flex items-center justify-center transform scale-x-[-1]">
               <span className="absolute text-gray-700 opacity-50 grayscale">🍗</span>
               {type === 'full' && <span className="absolute text-orange-400 drop-shadow-[0_0_2px_rgba(251,146,60,0.8)]">🍗</span>}
               {type === 'half' && (
@@ -499,20 +499,20 @@ export default ({ player, onBack }: Props) => {
             </div>
             
             {showStats && (
-              <div className="w-max mb-1">
+              <div className="w-[416px] md:w-[488px] mb-1 px-1">
                 {/* Health & Food Row */}
-                <div className="flex justify-between items-end w-full px-1 mb-1">
+                <div className="flex justify-between items-end w-full mb-1">
                   <HealthBar health={health} />
                   <FoodBar food={foodLevel} />
                 </div>
                 
                 {/* XP Bar */}
-                <div className="relative w-[340px] h-[8px] border-2 border-black bg-gray-800 flex items-center justify-center mb-1">
+                <div className="relative w-full h-[8px] border-[2px] border-black bg-gray-800 flex items-center justify-center mb-1 shadow-sm">
                   <div 
                     className="absolute top-0 left-0 h-full bg-[#80ff20]" 
                     style={{ width: `${(nbtData?.value?.XpP?.value || 0) * 100}%` }}
                   ></div>
-                  <span className="relative text-[#80ff20] font-bold z-10" style={{ fontSize: '10px', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000', top: '-8px' }}>
+                  <span className="relative text-[#80ff20] font-bold z-10" style={{ fontSize: '12px', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000', top: '-10px' }}>
                     Level {loadingNbt ? '...' : nbtData?.value?.XpLevel?.value || 0}
                   </span>
                 </div>
