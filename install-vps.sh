@@ -194,21 +194,29 @@ const panelDir = process.argv[2];
   
   // Remover skip check de routes.server.map, pois Pterodactyl usa mapa apenas no mobile e fixo no desktop
   
-  // Tentar achar modpacks por URL
   let pm = c.match(/<NavLink[^>]*\/modpacks[^>]*>[\s\S]*?<\/NavLink>/i);
   if (!pm) {
+      console.log('DEBUG: Não achou /modpacks em NavLink. Procurando users...');
       pm = c.match(/<NavLink[^>]*\/users[^>]*>[\s\S]*?<\/NavLink>/i);
   }
   if (!pm) {
+      console.log('DEBUG: Não achou /users em NavLink. Procurando files...');
       pm = c.match(/<NavLink[^>]*\/files[^>]*>[\s\S]*?<\/NavLink>/i);
   }
   
   if (!pm) {
       console.log('⚠ Não foi possível encontrar a aba Modpacks, Users ou Files no ServerElements.tsx. A injeção manual na Navbar Desktop falhou.');
+      // DEBUG: Verify what NavLinks DO exist
+      const allNavs = [...c.matchAll(/<NavLink[^>]*>[\s\S]*?<\/NavLink>/gi)];
+      console.log('DEBUG: Total de NavLinks no arquivo: ' + allNavs.length);
+      if (allNavs.length > 0) {
+          console.log('DEBUG: Último NavLink encontrado: ' + allNavs[allNavs.length - 1][0].substring(0, 100));
+      }
       return;
   }
   
   if (pm) {
+    console.log('DEBUG: Match encontrado! Injetando após a tab.');
     const ls = c.lastIndexOf('\n', pm.index) + 1;
     const ind = (c.slice(ls, pm.index).match(/^(\s*)/) || ['',''])[1];
     const inj = '\n' + ind + '<NavLink to={`${match.url}/players`}>' +
