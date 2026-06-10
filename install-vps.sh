@@ -193,8 +193,7 @@ build_panel() {
     rm -rf public/assets/* 2>/dev/null || true
 
     print_info "Construindo frontend (isso pode demorar vários minutos)..."
-    export NODE_OPTIONS=--openssl-legacy-provider
-    yarn build:production || npm run build:production
+    NODE_OPTIONS=--openssl-legacy-provider yarn build:production || NODE_OPTIONS=--openssl-legacy-provider npm run build:production
 
     print_success "Painel construído com sucesso!"
 }
