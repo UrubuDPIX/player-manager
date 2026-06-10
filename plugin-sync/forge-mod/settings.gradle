@@ -1,1 +1,9 @@
+pluginManagement {
+    repositories {
+        maven { url = uri('https://maven.minecraftforge.net') }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'playermanagersync-forge'

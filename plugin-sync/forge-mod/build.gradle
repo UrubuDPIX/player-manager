@@ -1,7 +1,18 @@
+buildscript {
+    repositories {
+        maven { url = uri('https://maven.minecraftforge.net') }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:6.0.54'
+    }
+}
+
 plugins {
-    id 'net.minecraftforge.gradle' version '6.1.2'
     id 'java'
 }
+
+apply plugin: 'net.minecraftforge.gradle'
 
 group = 'com.urubudpix'
 version = '1.0.0'

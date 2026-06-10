@@ -32,6 +32,18 @@ export const getPlayerDataUrl = async (uuid: string, playerUuid: string, worldNa
   return data.attributes.url;
 };
 
+export const listPlayerData = async (uuid: string, worldName: string = 'world'): Promise<any[]> => {
+  try {
+    const { data } = await http.get(`/api/client/servers/${uuid}/files/list`, {
+      params: { directory: `${worldName}/playerdata` },
+    });
+    return data.data;
+  } catch (error) {
+    console.error('Failed to list playerdata:', error);
+    return [];
+  }
+};
+
 export const sendCommand = async (uuid: string, command: string): Promise<void> => {
   await http.post(`/api/client/servers/${uuid}/command`, { command });
 };

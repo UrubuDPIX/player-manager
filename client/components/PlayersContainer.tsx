@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageContentBlock from '@/components/elements/PageContentBlock';
-import { getUserCache } from '../api/files';
+import { getUserCache, listPlayerData } from '../api/files';
 import { ServerContext } from '@/state/server';
 import useFlash from '@/plugins/useFlash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -32,19 +32,35 @@ export default () => {
     const fetchPlayers = async () => {
       try {
         setLoading(true);
-        const cache = await getUserCache(server.uuid);
+        const [cache, files] = await Promise.all([
+          getUserCache(server.uuid),
+          listPlayerData(server.uuid)
+        ]);
         
-        // Map usercache to Player state. 
-        // For real-time health/food/online we'd need to parse NBT or use RCON, 
-        // but for now we set default/mock stats in the listing to be filled later.
-        const mappedPlayers: Player[] = cache.map(entry => ({
-          uuid: entry.uuid,
-          name: entry.name,
-          health: 20.0, // Default mock for listing
-          food: 20.0,
-          isOp: false,  // Will be updated when parsing ops.json or NBT
-          online: false // Need timestamp check on .dat file to verify
-        }));
+        const fileMods: Record<string, number> = {};
+        files.forEach((f: any) => {
+          if (f.attributes?.name?.endsWith('.dat')) {
+            const uuid = f.attributes.name.replace('.dat', '');
+            fileMods[uuid] = new Date(f.attributes.modified_at).getTime();
+          }
+        });
+        
+        const now = Date.now();
+
+        const mappedPlayers: Player[] = cache.map(entry => {
+          const lastMod = fileMods[entry.uuid] || 0;
+          // Plugin saves every 5 seconds. If modified in last 25 seconds, player is online.
+          const isOnline = (now - lastMod) < 25000;
+          
+          return {
+            uuid: entry.uuid,
+            name: entry.name,
+            health: 20.0,
+            food: 20.0,
+            isOp: false,
+            online: isOnline
+          };
+        });
         
         setPlayers(mappedPlayers);
       } catch (error) {
