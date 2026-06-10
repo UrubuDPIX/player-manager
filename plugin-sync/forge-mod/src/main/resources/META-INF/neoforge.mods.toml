@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[2,) // NeoForge 1.21.x"
+loaderVersion="[2,)"
 license="MIT"
 
 [[mods]]
