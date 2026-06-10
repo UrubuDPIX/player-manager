@@ -3,7 +3,7 @@ import PageContentBlock from '@/components/elements/PageContentBlock';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faTrash, faCog, faGavel, faCrown, faUserSlash, faRunning, faWrench, faSkull, faShieldAlt, faSync } from '@fortawesome/free-solid-svg-icons';
 import Button from '@/components/elements/Button';
-import { getPlayerDataUrl, sendCommand } from '../api/files';
+import { getPlayerDataUrl, sendCommand, getServerLog } from '../api/files';
 import { ServerContext } from '@/state/server';
 import useFlash from '@/plugins/useFlash';
 import { Buffer } from 'buffer';
@@ -140,6 +140,9 @@ export default ({ player, onBack }: Props) => {
   const [nbtData, setNbtData] = useState<any>(null);
   const [loadingNbt, setLoadingNbt] = useState(true);
   const [activeTab, setActiveTab] = useState<'inventory' | 'manage' | 'details' | 'logs'>('inventory');
+  
+  const [playerLogs, setPlayerLogs] = useState<string[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
 
   const executeCommand = async (command: string, successMessage: string) => {
     try {
@@ -191,6 +194,28 @@ export default ({ player, onBack }: Props) => {
     const interval = setInterval(() => fetchNbt(true), 10000);
     return () => clearInterval(interval);
   }, [server.uuid, player.uuid]);
+
+  const fetchLogs = async () => {
+    setLoadingLogs(true);
+    const logData = await getServerLog(server.uuid);
+    
+    // Split by newline and filter for this player
+    const lines = logData.split('\n');
+    const filtered = lines.filter(line => 
+      line.includes('INFO') && 
+      line.includes(player.name) && 
+      (line.includes('<' + player.name + '>') || line.includes('issued server command:') || line.includes('[Not Secure] <' + player.name + '>') || line.includes('Async Chat Thread'))
+    ).slice(-100); // Get last 100 entries
+    
+    setPlayerLogs(filtered);
+    setLoadingLogs(false);
+  };
+
+  useEffect(() => {
+    if (activeTab === 'logs') {
+      fetchLogs();
+    }
+  }, [activeTab, server.uuid, player.name]);
 
   // Extract relevant NBT data safely
   const pos = nbtData?.value?.Pos?.value?.value || [0, 0, 0];
@@ -449,6 +474,36 @@ export default ({ player, onBack }: Props) => {
               </div>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'logs' && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold text-gray-200 mb-6 border-b border-gray-700 pb-2 flex justify-between items-center">
+            Player Logs & Commands
+            <button onClick={fetchLogs} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded cursor-pointer transition-colors">
+              Refresh Logs
+            </button>
+          </h2>
+          
+          <div className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-4 font-mono text-sm overflow-y-auto max-h-[500px]">
+            {loadingLogs ? (
+              <div className="text-gray-400 animate-pulse">Loading logs from server...</div>
+            ) : playerLogs.length === 0 ? (
+              <div className="text-gray-500 italic">No chat messages or commands found for this player in the latest log.</div>
+            ) : (
+              <ul className="space-y-2">
+                {playerLogs.map((log, i) => {
+                  const isCommand = log.includes('issued server command:');
+                  return (
+                    <li key={i} className={`border-l-2 pl-3 py-1 ${isCommand ? 'border-yellow-500 text-yellow-200 bg-yellow-900/10' : 'border-blue-500 text-blue-200 bg-blue-900/10'}`}>
+                      {log}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </div>
       )}

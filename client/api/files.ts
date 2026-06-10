@@ -35,3 +35,16 @@ export const getPlayerDataUrl = async (uuid: string, playerUuid: string, worldNa
 export const sendCommand = async (uuid: string, command: string): Promise<void> => {
   await http.post(`/api/client/servers/${uuid}/command`, { command });
 };
+
+export const getServerLog = async (uuid: string): Promise<string> => {
+  try {
+    const { data } = await http.get(`/api/client/servers/${uuid}/files/contents`, {
+      params: { file: 'logs/latest.log' },
+      responseType: 'text'
+    });
+    return typeof data === 'string' ? data : '';
+  } catch (error) {
+    console.error('Failed to fetch latest.log:', error);
+    return '';
+  }
+};
