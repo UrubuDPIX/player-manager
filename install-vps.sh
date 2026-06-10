@@ -192,38 +192,31 @@ const panelDir = process.argv[2];
   // Limpa injecoes antigas se existirem
   c = c.replace(/<NavLink[^>]*\/players[^>]*>[\s\S]*?<\/NavLink>\n?/g, '');
   
-  // Se o painel usa routes.map para a navbar (1.11+), nao precisamos injetar a tag manualmente
-  if (c.includes('routes.server.map')) {
-    console.log('✓ ServerElements usa routes.map, a aba aparecerá automaticamente.');
-    fs.writeFileSync(sePath, c);
-    return;
+  // Remover skip check de routes.server.map, pois Pterodactyl usa mapa apenas no mobile e fixo no desktop
+  
+  // Tentar achar modpacks por URL
+  let pm = c.match(/<NavLink[^>]*\/modpacks[^>]*>[\s\S]*?<\/NavLink>/i);
+  if (!pm) {
+      pm = c.match(/<NavLink[^>]*\/users[^>]*>[\s\S]*?<\/NavLink>/i);
+  }
+  if (!pm) {
+      pm = c.match(/<NavLink[^>]*\/files[^>]*>[\s\S]*?<\/NavLink>/i);
   }
   
-  if (!c.match(/<NavLink[^>]*>[\s\S]*?Players[\s\S]*?<\/NavLink>/i)) {
-    let pm = c.match(/<NavLink[^>]*>[\s\S]*?Modpacks[\s\S]*?<\/NavLink>/i);
-    if (!pm) {
-        pm = c.match(/<NavLink[^>]*>[\s\S]*?Users[\s\S]*?<\/NavLink>/i);
-    }
-    if (!pm) {
-        pm = c.match(/<NavLink[^>]*>[\s\S]*?Files[\s\S]*?<\/NavLink>/i);
-    }
+  if (!pm) {
+      console.log('⚠ Não foi possível encontrar a aba Modpacks, Users ou Files no ServerElements.tsx. A injeção manual na Navbar Desktop falhou.');
+      return;
+  }
+  
+  if (pm) {
+    const ls = c.lastIndexOf('\n', pm.index) + 1;
+    const ind = (c.slice(ls, pm.index).match(/^(\s*)/) || ['',''])[1];
+    const inj = '\n' + ind + '<NavLink to={`${match.url}/players`}>' +
+                '\n' + ind + '    <FontAwesomeIcon icon={faUsers} /> Players' +
+                '\n' + ind + '</NavLink>';
     
-    if (!pm) {
-        console.log('✓ ServerElements não possui abas fixas conhecidas. Provavelmente usa mapa dinâmico. Ignorando injeção manual.');
-        // Clean up any bad injection just in case
-        c = c.replace(/<NavLink to={`\${match.url}\/players`}>[\s\S]*?<\/NavLink>\n?/i, '');
-        fs.writeFileSync(sePath, c);
-        return;
-    }
-    
-    if (pm) {
-      const ls = c.lastIndexOf('\n', pm.index) + 1;
-      const ind = (c.slice(ls, pm.index).match(/^(\s*)/) || ['',''])[1];
-      const inj = '\n' + ind + '<NavLink to={`${match.url}/players`}>' +
-                  '\n' + ind + '    <FontAwesomeIcon icon={faUsers} /> Players' +
-                  '\n' + ind + '</NavLink>';
-      
-      c = c.slice(0, pm.index + pm[0].length) + inj + c.slice(pm.index + pm[0].length);
+    // Inserir APOS a tab encontrada, garantindo que nao esta dentro do loop map
+    c = c.slice(0, pm.index + pm[0].length) + inj + c.slice(pm.index + pm[0].length);
       
       if (!c.includes('faUsers')) {
           const fm = c.match(/import\s+\{[^}]*\}\s+from\s+['"]@fortawesome\/free-solid-svg-icons['"];?/);
