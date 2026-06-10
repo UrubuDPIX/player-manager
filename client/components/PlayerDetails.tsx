@@ -15,20 +15,20 @@ const InventorySlot = ({ item }: { item?: any }) => {
     return <div className="aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff]"></div>;
   }
   
-  const id = item.id.value.replace('minecraft:', '');
-  const count = item.Count.value;
+  const id = item.id?.value?.replace('minecraft:', '');
+  const count = item.Count?.value ?? item.count?.value ?? 1;
   
   return (
     <div className="aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] relative flex items-center justify-center p-1">
       <img 
-        src={`https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.19.4/items/${id}.png`} 
+        src={`https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.1/items/${id}.png`} 
         alt={id} 
         className="w-full h-full object-contain"
         style={{ imageRendering: 'pixelated' }}
         onError={(e) => {
            const target = e.target as HTMLImageElement;
            if (!target.src.includes('blocks')) {
-             target.src = `https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.19.4/blocks/${id}.png`;
+             target.src = `https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.21.1/blocks/${id}.png`;
            }
         }}
       />
@@ -118,7 +118,7 @@ export default ({ player, onBack }: Props) => {
           <FontAwesomeIcon icon={faChevronLeft} size="lg" />
         </button>
         <h1 className="text-2xl font-bold text-gray-50 flex items-center gap-4">
-          <img src={`https://crafatar.com/avatars/${player.uuid}?overlay=true&size=32`} alt={player.name} className="w-8 h-8 rounded" />
+          <img src={`https://mc-heads.net/avatar/${player.uuid}/32`} alt={player.name} className="w-8 h-8 rounded" />
           {player.name}
         </h1>
       </div>
@@ -169,20 +169,20 @@ export default ({ player, onBack }: Props) => {
             <div className="flex gap-4 mb-4">
               {/* Armor Slots */}
               <div className="flex flex-col gap-1">
-                <InventorySlot item={inventory.find((i: any) => i.Slot.value === 103)} /> {/* Helmet */}
-                <InventorySlot item={inventory.find((i: any) => i.Slot.value === 102)} /> {/* Chestplate */}
-                <InventorySlot item={inventory.find((i: any) => i.Slot.value === 101)} /> {/* Leggings */}
-                <InventorySlot item={inventory.find((i: any) => i.Slot.value === 100)} /> {/* Boots */}
+                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 103)} /> {/* Helmet */}
+                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 102)} /> {/* Chestplate */}
+                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 101)} /> {/* Leggings */}
+                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === 100)} /> {/* Boots */}
               </div>
 
               {/* 3D Skin Preview Mockup */}
               <div className="flex-1 bg-black/20 rounded flex items-center justify-center p-2 relative">
-                <img src={`https://crafatar.com/renders/body/${player.uuid}?overlay=true`} alt="Player Body" className="h-48 object-contain" />
+                <img src={`https://mc-heads.net/body/${player.uuid}`} alt="Player Body" className="h-48 object-contain" />
               </div>
 
               {/* Shield/Offhand */}
               <div className="flex flex-col justify-end gap-1">
-                <InventorySlot item={inventory.find((i: any) => i.Slot.value === -106)} />
+                <InventorySlot item={inventory.find((i: any) => (i.Slot?.value ?? i.slot?.value) === -106)} />
               </div>
               
               {/* Location Info */}
@@ -208,14 +208,14 @@ export default ({ player, onBack }: Props) => {
             {/* Main Inventory 3x9 */}
             <div className="grid grid-cols-9 gap-1 mb-2">
               {Array.from({ length: 27 }).map((_, i) => (
-                <InventorySlot key={`inv-${i}`} item={inventory.find((item: any) => item.Slot.value === i + 9)} />
+                <InventorySlot key={`inv-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i + 9)} />
               ))}
             </div>
 
             {/* Hotbar 1x9 */}
             <div className="grid grid-cols-9 gap-1">
               {Array.from({ length: 9 }).map((_, i) => (
-                <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => item.Slot.value === i)} />
+                <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} />
               ))}
             </div>
           </div>
@@ -226,7 +226,7 @@ export default ({ player, onBack }: Props) => {
               {/* Ender Chest 3x9 */}
               <div className="grid grid-cols-9 gap-1">
                 {Array.from({ length: 27 }).map((_, i) => (
-                  <InventorySlot key={`ender-${i}`} item={nbtData?.value?.EnderItems?.value?.value?.find((item: any) => item.Slot.value === i)} />
+                  <InventorySlot key={`ender-${i}`} item={nbtData?.value?.EnderItems?.value?.value?.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} />
                 ))}
               </div>
             </div>

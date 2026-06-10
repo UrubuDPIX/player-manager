@@ -12,6 +12,7 @@
   "type": "commonjs",
   "dependencies": {
     "buffer": "^6.0.3",
+    "nbt": "^0.8.1",
     "pako": "^2.1.0",
     "prismarine-nbt": "^2.8.0"
   }
