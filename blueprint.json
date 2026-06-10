@@ -1,0 +1,38 @@
+{
+  "name": "Player Manager",
+  "identifier": "player-manager",
+  "version": "1.0.0",
+  "description": "Gerenciamento avançado de jogadores, inventários, atributos e dados NBT.",
+  "author": "UrubuDPIX",
+  "target": "jexactyl",
+  "website": "https://github.com/UrubuDPIX",
+  "icon": "Users",
+  "flags": ["player", "management", "nbt", "inventory"],
+  "database": {
+    "tables": [
+      {
+        "name": "player_logs",
+        "columns": [
+          "id INT AUTO_INCREMENT PRIMARY KEY",
+          "server_id INT NOT NULL",
+          "uuid VARCHAR(36) NOT NULL",
+          "action VARCHAR(255) NOT NULL",
+          "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP"
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "players.view": "Ver lista de jogadores e status",
+    "players.manage": "Editar inventário, banir, whitelist",
+    "players.op": "Dar/Remover OP"
+  },
+  "requests": {
+    "post": [
+      {
+        "route": "/api/client/servers/:server/players/manage",
+        "controller": "PlayerManagerController@manage"
+      }
+    ]
+  }
+}
