@@ -11,6 +11,8 @@ const pako = require('pako');
 const nbt = require('./nbt');
 
 const InventorySlot = ({ item, className = "" }: { item?: any, className?: string }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   if (!item) {
     return <div className={`aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] ${className}`}></div>;
   }
@@ -19,8 +21,58 @@ const InventorySlot = ({ item, className = "" }: { item?: any, className?: strin
   const count = item.Count?.value ?? item.count?.value ?? 1;
   const isEnchanted = item.components?.value?.['minecraft:enchantments'] || item.tag?.value?.Enchantments || item.components?.value?.['minecraft:enchantment_glint_override']?.value === 1;
   
+  const getEnchants = () => {
+    let enchs: string[] = [];
+    if (item.tag?.value?.Enchantments?.value?.value) {
+      const list = item.tag.value.Enchantments.value.value;
+      list.forEach((e: any) => {
+        const eid = e.id?.value?.replace('minecraft:', '');
+        const lvl = e.lvl?.value;
+        if (eid) enchs.push(`${eid} ${lvl}`);
+      });
+    } else if (item.components?.value?.['minecraft:enchantments']?.value?.levels?.value) {
+      const levels = item.components.value['minecraft:enchantments'].value.levels.value;
+      for (const [key, val] of Object.entries(levels)) {
+        enchs.push(`${key.replace('minecraft:', '')} ${(val as any).value}`);
+      }
+    }
+    
+    const roman = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+    return enchs.map(e => {
+      const parts = e.split(' ');
+      const name = parts[0].split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      const lvlStr = parseInt(parts[1]) <= 10 ? roman[parseInt(parts[1])] : parts[1];
+      return `${name} ${lvlStr}`.trim();
+    });
+  };
+
+  const getCustomName = () => {
+    try {
+      const customNameStr = item.components?.value?.['minecraft:custom_name']?.value || item.tag?.value?.display?.value?.Name?.value;
+      if (customNameStr) {
+        if (customNameStr.startsWith('{')) {
+          const parsed = JSON.parse(customNameStr);
+          return parsed.text || parsed.extra?.[0]?.text || customNameStr;
+        }
+        return customNameStr;
+      }
+    } catch(e) {}
+    return null;
+  };
+
+  const formatName = (str: string) => {
+    return str.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  };
+
+  const enchants = getEnchants();
+  const displayName = getCustomName() || formatName(id);
+
   return (
-    <div className={`aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] relative flex items-center justify-center p-1 ${className} ${isEnchanted ? 'enchanted' : ''}`}>
+    <div 
+      className={`aspect-square bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff] relative flex items-center justify-center p-1 ${className} ${isEnchanted ? 'enchanted' : ''}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <style>{`
         @keyframes glint {
           0% { background-position: -100% -100%; }
@@ -43,12 +95,26 @@ const InventorySlot = ({ item, className = "" }: { item?: any, className?: strin
         alt={id} 
         className="w-full h-full object-contain"
         style={{ imageRendering: 'pixelated' }}
-        title={id}
       />
       {count > 1 && (
-        <span className="absolute bottom-0 right-1 text-white font-bold" style={{ fontSize: '0.7rem', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000' }}>
+        <span className="absolute bottom-0 right-1 text-white font-bold z-10" style={{ fontSize: '0.7rem', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000' }}>
           {count}
         </span>
+      )}
+
+      {isHovered && (
+        <div className="absolute z-50 bottom-[110%] left-1/2 transform -translate-x-1/2 w-max bg-[#110011]/95 border-2 border-[#3b00b8] p-2 rounded shadow-[0_0_10px_rgba(0,0,0,0.8)] pointer-events-none text-left" style={{ fontFamily: 'monospace' }}>
+          <div className={`text-base font-bold ${isEnchanted ? 'text-[#55FFFF]' : 'text-white'}`}>
+            {displayName}
+          </div>
+          {enchants.length > 0 && (
+            <div className="text-[#AAAAAA] text-sm mt-1">
+              {enchants.map((e, idx) => (
+                <div key={idx}>{e}</div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
