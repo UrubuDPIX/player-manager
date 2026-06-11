@@ -13,7 +13,7 @@ const nbt = require('./nbt');
 const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isHotbarSlot = false, className = "" }: { item?: any, slotIndex?: number, onMoveItem?: (from: number, to: number) => void, isTransparent?: boolean, isHotbarSlot?: boolean, className?: string }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const sizeClasses = isHotbarSlot ? 'w-[32px] h-[32px] min-w-[32px] min-h-[32px]' : 'w-10 h-10 md:w-12 md:h-12 min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px]';
+  const sizeClasses = isHotbarSlot ? 'w-[40px] h-[40px] min-w-[40px] min-h-[40px]' : 'w-10 h-10 md:w-12 md:h-12 min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px]';
   const bgClasses = isTransparent ? 'bg-transparent' : 'bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff]';
 
   if (!item) {
@@ -643,10 +643,22 @@ export default ({ player, onBack }: Props) => {
             )}
 
             {/* Hotbar 1x9 */}
-            <div className="bg-[#c6c6c6] border-[4px] border-[#555555] border-t-white border-l-white p-2 mt-1 w-max mx-auto" style={{ imageRendering: 'pixelated' }}>
-              <div className="grid grid-cols-9 gap-1">
+            <div 
+              className="relative w-max mt-2 mx-auto" 
+              style={{ 
+                width: '455px',
+                height: '55px',
+                backgroundImage: 'url(https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.1/assets/minecraft/textures/gui/widgets.png)',
+                backgroundSize: '640px 640px',
+                backgroundPosition: '0px 0px',
+                imageRendering: 'pixelated',
+                paddingTop: '7.5px',
+                paddingLeft: '7.5px'
+              }}
+            >
+              <div className="flex gap-[10px]">
                 {Array.from({ length: 9 }).map((_, i) => (
-                  <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} slotIndex={i} onMoveItem={handleMoveItem} />
+                  <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} slotIndex={i} onMoveItem={handleMoveItem} isTransparent={true} isHotbarSlot={true} />
                 ))}
               </div>
             </div>
