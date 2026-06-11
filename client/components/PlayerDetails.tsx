@@ -3,7 +3,7 @@ import PageContentBlock from '@/components/elements/PageContentBlock';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faTrash, faCog, faGavel, faCrown, faUserSlash, faRunning, faWrench, faSkull, faShieldAlt, faSync, faBox } from '@fortawesome/free-solid-svg-icons';
 import Button from '@/components/elements/Button';
-import { getPlayerDataUrl, sendCommand, getServerLog, getPlayerStats, listPlayerData } from '../api/files';
+import { getPlayerDataUrl, sendCommand, getServerLog, getPlayerStats, listPlayerData, uploadFile } from '../api/files';
 import { ServerContext } from '@/state/server';
 import useFlash from '@/plugins/useFlash';
 import { Buffer } from 'buffer';
@@ -271,7 +271,6 @@ export default ({ player, onBack }: Props) => {
       setNbtData(newNbtData);
 
       try {
-        const { uploadFile } = require('../api/files');
         // nbt library supports writeUncompressed natively (prismarine-nbt)
         const buffer = nbt.writeUncompressed(newNbtData);
         const gzipped = pako.gzip(buffer);
@@ -645,22 +644,10 @@ export default ({ player, onBack }: Props) => {
             )}
 
             {/* Hotbar 1x9 */}
-            <div 
-              className="relative w-max mt-1 mx-auto" 
-              style={{ 
-                width: '364px',
-                height: '44px',
-                backgroundImage: 'url(https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.1/assets/minecraft/textures/gui/widgets.png)',
-                backgroundSize: '512px 512px',
-                backgroundPosition: '0px 0px',
-                imageRendering: 'pixelated',
-                paddingTop: '6px',
-                paddingLeft: '6px'
-              }}
-            >
-              <div className="grid grid-cols-9 gap-[8px]">
+            <div className="bg-[#c6c6c6] border-[4px] border-[#555555] border-t-white border-l-white p-2 mt-1 w-max mx-auto" style={{ imageRendering: 'pixelated' }}>
+              <div className="grid grid-cols-9 gap-1">
                 {Array.from({ length: 9 }).map((_, i) => (
-                  <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} slotIndex={i} onMoveItem={handleMoveItem} isTransparent={true} isHotbarSlot={true} />
+                  <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} slotIndex={i} onMoveItem={handleMoveItem} />
                 ))}
               </div>
             </div>
