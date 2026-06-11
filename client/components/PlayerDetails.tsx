@@ -34,7 +34,10 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isH
     );
   }
   
-  const id = item.id?.value?.replace('minecraft:', '');
+  const rawId = item.id?.value || '';
+  const isModded = rawId.includes(':') && !rawId.startsWith('minecraft:');
+  const [modid, itemName] = isModded ? rawId.split(':') : ['', rawId.replace('minecraft:', '')];
+  const id = itemName;
   const count = item.Count?.value ?? item.count?.value ?? 1;
   const isEnchanted = item.components?.value?.['minecraft:enchantments'] || item.tag?.value?.Enchantments || item.components?.value?.['minecraft:enchantment_glint_override']?.value === 1;
   
@@ -144,20 +147,24 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isH
         }
       `}</style>
       <img 
-        src={`https://api.minecraftitems.xyz/api/item/${id}`} 
+        src={isModded ? `http://${window.location.hostname}:8080/icons/${modid}/${itemName}.png` : `https://api.minecraftitems.xyz/api/item/${id}`} 
         alt={id} 
         className="absolute inset-0 m-auto w-[85%] h-[85%] object-contain"
         style={{ imageRendering: 'pixelated' }}
         onError={(e) => {
           const target = e.target as HTMLImageElement;
-          if (!target.dataset.fallback) {
-             target.dataset.fallback = "1";
-             target.src = `https://minecraft-api.vercel.app/images/blocks/${id}.png`;
-          } else if (target.dataset.fallback === "1") {
-             target.dataset.fallback = "2";
-             target.src = `https://minecraft-api.vercel.app/images/items/${id}.png`;
+          if (isModded) {
+            target.style.opacity = '0';
           } else {
-             target.style.opacity = '0';
+            if (!target.dataset.fallback) {
+               target.dataset.fallback = "1";
+               target.src = `https://minecraft-api.vercel.app/images/blocks/${id}.png`;
+            } else if (target.dataset.fallback === "1") {
+               target.dataset.fallback = "2";
+               target.src = `https://minecraft-api.vercel.app/images/items/${id}.png`;
+            } else {
+               target.style.opacity = '0';
+            }
           }
         }}
       />

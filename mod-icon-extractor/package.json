@@ -1,0 +1,15 @@
+{
+  "name": "mod-icon-extractor",
+  "version": "1.0.0",
+  "description": "Extracts mod icons for Player Manager",
+  "main": "extractor.js",
+  "scripts": {
+    "start": "node server.js",
+    "extract": "node extractor.js"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
