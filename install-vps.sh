@@ -255,17 +255,49 @@ const panelDir = process.argv[2];
       fileContent = "import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';\n" + fileContent;
   }
 
-  // Now we can inject the JSX block (we have to recalculate the index because fileContent length changed)
-  const newPmMatch = fileContent.match(new RegExp(pmMatch[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  // Now we can inject the JSX block
+  const newPmMatch = fileContent.match(new RegExp(pmMatch[0].replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'), 'i'));
   if (newPmMatch) {
       fileContent = fileContent.slice(0, newPmMatch.index + newPmMatch[0].length) + inj + fileContent.slice(newPmMatch.index + newPmMatch[0].length);
   } else {
-      // Fallback if regex somehow fails
       fileContent = fileContent.replace(pmMatch[0], pmMatch[0] + inj);
   }
   
   console.log('✓ Botão Players injetado com sucesso no arquivo: ' + path.basename(targetFile));
   fs.writeFileSync(targetFile, fileContent);
+})();
+
+// 4. Patch ServerRow for Automatic Egg Backgrounds
+(function patchServerRowBg() {
+  const srPath = path.join(panelDir, 'resources/scripts/components/dashboard/ServerRow.tsx');
+  if (!fs.existsSync(srPath)) return;
+  let c = fs.readFileSync(srPath, 'utf8');
+
+  if (c.includes('const getEggBackground')) return;
+
+  const match = c.match(/(export default\s*(?:function)?\s*\\w*\\s*\\([^)]*\\)\\s*=>\\s*\\{)/);
+  if (match) {
+    const inj = \`
+    const getEggBackground = (server) => {
+        if (server.bgImage) return \\\`url(\\\${server.bgImage})\\\`;
+        const img = (server.dockerImage || '').toLowerCase();
+        const name = (server.name || '').toLowerCase();
+        if (img.includes('java') || img.includes('minecraft') || name.includes('minecraft') || name.includes('modpack') || name.includes('moon')) return 'url(https://i.imgur.com/8Q5R0B9.jpg)';
+        if (img.includes('fivem') || name.includes('fivem') || name.includes('gta')) return 'url(https://i.imgur.com/uRj0yI7.jpg)';
+        if (img.includes('node') || img.includes('python') || name.includes('bot') || name.includes('discord')) return 'url(https://i.imgur.com/3Y4A65W.jpg)';
+        if (name.includes('lavalink') || name.includes('music')) return 'url(https://i.imgur.com/7vjP51v.jpg)';
+        return '';
+    };
+    const eggBg = getEggBackground(server);
+\`;
+    c = c.slice(0, match.index + match[0].length) + inj + c.slice(match.index + match[0].length);
+    
+    const afterInj = c.slice(match.index + match[0].length);
+    c = c.slice(0, match.index + match[0].length) + afterInj.replace(/className=/, 'style={eggBg ? { backgroundImage: eggBg, backgroundSize: "cover", backgroundPosition: "center", backgroundBlendMode: "overlay", backgroundColor: "rgba(20, 25, 35, 0.85)" } : {}} className=');
+
+    fs.writeFileSync(srPath, c);
+    console.log('✓ Sistema de Background Automático por Egg injetado no ServerRow.tsx!');
+  }
 })();
 JSEOF
     } > "$JS"
