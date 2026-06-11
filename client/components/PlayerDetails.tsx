@@ -12,6 +12,65 @@ const nbt = require('./nbt');
 
 let globalTextureMap: Record<string, string> = {};
 
+const mcColors: any = {
+  'black': '#000000', '0': '#000000', 'dark_blue': '#0000AA', '1': '#0000AA',
+  'dark_green': '#00AA00', '2': '#00AA00', 'dark_aqua': '#00AAAA', '3': '#00AAAA',
+  'dark_red': '#AA0000', '4': '#AA0000', 'dark_purple': '#AA00AA', '5': '#AA00AA',
+  'gold': '#FFAA00', '6': '#FFAA00', 'gray': '#AAAAAA', '7': '#AAAAAA',
+  'dark_gray': '#555555', '8': '#555555', 'blue': '#5555FF', '9': '#5555FF',
+  'green': '#55FF55', 'a': '#55FF55', 'aqua': '#55FFFF', 'b': '#55FFFF',
+  'red': '#FF5555', 'c': '#FF5555', 'light_purple': '#FF55FF', 'd': '#FF55FF',
+  'yellow': '#FFFF55', 'e': '#FFFF55', 'white': '#FFFFFF', 'f': '#FFFFFF'
+};
+
+const renderMinecraftTextToHTML = (rawText: string, defaultColor: string = '#AAAAAA'): string => {
+    if (!rawText) return '';
+    let html = '';
+    
+    const parseObj = (obj: any, inheritColor: string): string => {
+        if (typeof obj === 'string') {
+            let t = obj;
+            let res = '';
+            let segments = t.split('§');
+            res += `<span>${segments[0].replace(/</g, '&lt;')}</span>`;
+            for(let i=1; i<segments.length; i++) {
+                const code = segments[i].charAt(0).toLowerCase();
+                const text = segments[i].slice(1).replace(/</g, '&lt;');
+                if (mcColors[code]) {
+                    res += `</span><span style="color: ${mcColors[code]}">${text}`;
+                } else if (code === 'r') {
+                    res += `</span><span style="color: ${inheritColor}">${text}`;
+                } else {
+                    res += text;
+                }
+            }
+            return res;
+        }
+        if (Array.isArray(obj)) return obj.map(o => parseObj(o, inheritColor)).join('');
+        if (typeof obj === 'object' && obj !== null) {
+            let color = inheritColor;
+            if (obj.color) {
+                if (obj.color.startsWith('#')) color = obj.color;
+                else if (mcColors[obj.color]) color = mcColors[obj.color];
+            }
+            let text = obj.text ? parseObj(obj.text, color) : '';
+            if (obj.translate) text += obj.translate; // Simplification
+            if (obj.extra) text += parseObj(obj.extra, color);
+            return `<span style="color: ${color}">${text}</span>`;
+        }
+        return '';
+    };
+
+    if (rawText.startsWith('{') || rawText.startsWith('[')) {
+        try {
+            html = parseObj(JSON.parse(rawText), defaultColor);
+        } catch(e) { html = rawText; }
+    } else {
+        html = parseObj(rawText, defaultColor);
+    }
+    return html;
+};
+
 const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isHotbarSlot = false, className = "" }: { item?: any, slotIndex?: number, onMoveItem?: (from: number, to: number) => void, isTransparent?: boolean, isHotbarSlot?: boolean, className?: string }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -72,14 +131,31 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isH
     try {
       const customNameStr = item.components?.value?.['minecraft:custom_name']?.value || item.tag?.value?.display?.value?.Name?.value;
       if (customNameStr) {
-        if (customNameStr.startsWith('{')) {
-          const parsed = JSON.parse(customNameStr);
-          return parsed.text || parsed.extra?.[0]?.text || customNameStr;
-        }
-        return customNameStr;
+        return renderMinecraftTextToHTML(customNameStr, '#55FFFF');
       }
     } catch(e) {}
     return null;
+  };
+
+  const getLore = () => {
+    let loreList: any[] = [];
+    try {
+        if (item.components?.value?.['minecraft:lore']?.value) {
+            loreList = item.components.value['minecraft:lore'].value;
+        } else if (item.tag?.value?.display?.value?.Lore?.value?.value) {
+            loreList = item.tag.value.display.value.Lore.value.value;
+        } else if (item.tag?.value?.display?.value?.Lore?.value) {
+            loreList = item.tag.value.display.value.Lore.value; 
+            if (loreList && (loreList as any).type === 'list' && (loreList as any).value) loreList = (loreList as any).value;
+        }
+    } catch(e) {}
+    
+    if (!Array.isArray(loreList)) return [];
+    
+    return loreList.map(l => {
+        let str = typeof l === 'string' ? l : (l.value || '');
+        return renderMinecraftTextToHTML(str, '#AA00AA');
+    }).filter(s => s);
   };
 
   const getMaxDurability = (id: string) => {
@@ -192,12 +268,25 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isH
       )}
 
       {isHovered && (
-        <div className="absolute z-50 bottom-[110%] left-1/2 transform -translate-x-1/2 w-max bg-[#110011]/95 border-2 border-[#3b00b8] p-2 rounded shadow-[0_0_10px_rgba(0,0,0,0.8)] pointer-events-none text-left" style={{ fontFamily: 'monospace' }}>
-          <div className={`text-base font-bold ${isEnchanted ? 'text-[#55FFFF]' : 'text-white'}`}>
-            {displayName}
-          </div>
+        <div className="absolute z-50 bottom-[110%] left-1/2 transform -translate-x-1/2 w-max max-w-xs whitespace-normal bg-[#110011]/95 border-2 border-[#3b00b8] p-2 rounded shadow-[0_0_10px_rgba(0,0,0,0.8)] pointer-events-none text-left leading-tight" style={{ fontFamily: 'monospace' }}>
+          {getCustomName() ? (
+            <div className="text-base font-bold" dangerouslySetInnerHTML={{ __html: getCustomName()! }} />
+          ) : (
+            <div className={`text-base font-bold ${isEnchanted ? 'text-[#55FFFF]' : 'text-white'}`}>
+              {displayName}
+            </div>
+          )}
+          
+          {getLore().length > 0 && (
+            <div className="mt-1">
+              {getLore().map((loreHtml, idx) => (
+                <div key={idx} dangerouslySetInnerHTML={{ __html: loreHtml }} className="text-sm" style={{textShadow: '1px 1px 0 #000'}} />
+              ))}
+            </div>
+          )}
+
           {enchants.length > 0 && (
-            <div className="text-[#AAAAAA] text-sm mt-1">
+            <div className="text-[#AAAAAA] text-sm mt-1" style={{textShadow: '1px 1px 0 #000'}}>
               {enchants.map((e, idx) => (
                 <div key={idx}>{e}</div>
               ))}
@@ -206,6 +295,7 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isH
           {durabilityPercent !== null && (
             <div className="text-gray-400 mt-1">Durability: {maxDurability - damage} / {maxDurability}</div>
           )}
+          <div className="text-[#555555] text-xs mt-1" style={{textShadow: '1px 1px 0 #000'}}>{rawId}</div>
         </div>
       )}
     </div>
