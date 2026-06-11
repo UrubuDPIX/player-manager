@@ -10,6 +10,8 @@ import { Buffer } from 'buffer';
 const pako = require('pako');
 const nbt = require('./nbt');
 
+let globalTextureMap: Record<string, string> = {};
+
 const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isHotbarSlot = false, className = "" }: { item?: any, slotIndex?: number, onMoveItem?: (from: number, to: number) => void, isTransparent?: boolean, isHotbarSlot?: boolean, className?: string }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -147,7 +149,7 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isH
         }
       `}</style>
       <img 
-        src={isModded ? (textureMap[rawId] ? `/icons/${textureMap[rawId]}` : `/icons/${modid}/item/${itemName}.png`) : `https://api.minecraftitems.xyz/api/item/${id}`} 
+        src={isModded ? (globalTextureMap[rawId] ? `/icons/${globalTextureMap[rawId]}` : `/icons/${modid}/item/${itemName}.png`) : `https://api.minecraftitems.xyz/api/item/${id}`} 
         alt={id} 
         className="absolute inset-0 m-auto w-[85%] h-[85%] object-contain"
         style={{ imageRendering: 'pixelated' }}
@@ -238,12 +240,15 @@ export default ({ player, onBack }: Props) => {
   
   const [playerLogs, setPlayerLogs] = useState<string[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
-  const [textureMap, setTextureMap] = useState<Record<string, string>>({});
+  const [textureMapLoaded, setTextureMapLoaded] = useState(false);
 
   useEffect(() => {
     fetch('/icons/texture_map.json')
       .then(res => res.json())
-      .then(data => setTextureMap(data))
+      .then(data => {
+        globalTextureMap = data;
+        setTextureMapLoaded(true);
+      })
       .catch(err => console.error('Failed to load texture map:', err));
   }, []);
 
