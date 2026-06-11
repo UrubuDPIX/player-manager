@@ -174,8 +174,10 @@ export default () => {
               const buffer = await res.arrayBuffer();
               const decompressed = pako.inflate(new Uint8Array(buffer));
               nbt.parse(decompressed, (err: any, data: any) => {
-                if (!err && data?.value?.Data?.value?.RandomSeed?.value) {
-                  const seedArr = data.value.Data.value.RandomSeed.value;
+                if (!err && data?.value?.Data?.value) {
+                  const dataTag = data.value.Data.value;
+                  const seedArr = dataTag.WorldGenSettings?.value?.seed?.value || dataTag.RandomSeed?.value;
+                  
                   if (Array.isArray(seedArr) && seedArr.length === 2) {
                     const high = BigInt(seedArr[0]);
                     const low = BigInt(seedArr[1] >>> 0); // Unsigned right shift for correct bits
