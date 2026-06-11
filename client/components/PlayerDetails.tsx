@@ -224,7 +224,7 @@ export default ({ player, onBack }: Props) => {
   const [lastSeen, setLastSeen] = useState<string>('Unknown');
   const [isOnline, setIsOnline] = useState(player.online);
   const [loadingNbt, setLoadingNbt] = useState(true);
-  const [activeTab, setActiveTab] = useState<'inventory' | 'manage' | 'details' | 'logs'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'manage' | 'logs'>('inventory');
   
   const [playerLogs, setPlayerLogs] = useState<string[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
@@ -519,7 +519,6 @@ export default ({ player, onBack }: Props) => {
           <div className="flex gap-2">
             <Button className={activeTab === 'inventory' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-700 hover:bg-gray-600'} onClick={() => setActiveTab('inventory')}>Inventory</Button>
             <Button className={activeTab === 'manage' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-700 hover:bg-gray-600'} onClick={() => setActiveTab('manage')}>Manage</Button>
-            <Button className={activeTab === 'details' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-700 hover:bg-gray-600'} onClick={() => setActiveTab('details')}>Details</Button>
             <Button className={activeTab === 'logs' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-700 hover:bg-gray-600'} onClick={() => setActiveTab('logs')}>Logs</Button>
           </div>
         </div>
@@ -655,50 +654,7 @@ export default ({ player, onBack }: Props) => {
         </div>
       )}
 
-      {activeTab === 'details' && (
-        <div className="mt-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <div>
-              <h3 className="text-gray-400 text-sm font-semibold mb-2">Current Position</h3>
-              <div className="text-gray-200 text-sm space-y-1">
-                <div><span className="text-red-400">X:</span> {loadingNbt ? '...' : pos[0]?.toFixed(2)}</div>
-                <div><span className="text-red-400">Y:</span> {loadingNbt ? '...' : pos[1]?.toFixed(2)}</div>
-                <div><span className="text-red-400">Z:</span> {loadingNbt ? '...' : pos[2]?.toFixed(2)}</div>
-                <div className="text-indigo-400 mt-2">Dimension: {nbtData?.value?.Dimension?.value?.replace('minecraft:', '') || 'World'}</div>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-gray-400 text-sm font-semibold mb-2">Respawn Location (Bed/Anchor)</h3>
-              <div className="text-gray-200 text-sm space-y-1">
-                <div><span className="text-red-400">X:</span> {nbtData?.value?.SpawnX?.value ?? 'N/A'}</div>
-                <div><span className="text-red-400">Y:</span> {nbtData?.value?.SpawnY?.value ?? 'N/A'}</div>
-                <div><span className="text-red-400">Z:</span> {nbtData?.value?.SpawnZ?.value ?? 'N/A'}</div>
-                <div className="text-indigo-400 mt-2">Dimension: {nbtData?.value?.SpawnDimension?.value?.replace('minecraft:', '') || 'N/A'}</div>
-              </div>
-            </div>
-          </div>
-          
-          <h2 className="text-xl font-bold text-gray-200 mb-6 border-b border-gray-700 pb-2">Statistics</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-4 text-sm">
-            <div className="flex justify-between border-b border-gray-700/50 pb-2">
-              <span className="text-gray-400">Time Since Rest</span>
-              <span className="text-gray-200">{(nbtData?.value?.SleepTimer?.value || 0)} ticks</span>
-            </div>
-            <div className="flex justify-between border-b border-gray-700/50 pb-2">
-              <span className="text-gray-400">Game Mode</span>
-              <span className="text-gray-200">{nbtData?.value?.playerGameType?.value === 1 ? 'Creative' : 'Survival'}</span>
-            </div>
-            <div className="flex justify-between border-b border-gray-700/50 pb-2">
-              <span className="text-gray-400">Score</span>
-              <span className="text-gray-200">{nbtData?.value?.Score?.value || 0}</span>
-            </div>
-            <div className="flex justify-between border-b border-gray-700/50 pb-2">
-              <span className="text-gray-400">Fall Distance</span>
-              <span className="text-gray-200">{nbtData?.value?.FallDistance?.value?.toFixed(2) || '0.00'} m</span>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {activeTab === 'manage' && (
         <div className="mt-8">
