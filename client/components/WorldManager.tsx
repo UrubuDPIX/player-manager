@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ServerContext } from '@/state/server';
 import useFlash from '@/plugins/useFlash';
 import Button from '@/components/elements/Button';
 import { getFileContents, saveFileContents, deleteFiles, compressFiles, uploadFile } from '../api/files';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGlobe, faExclamationTriangle, faUpload, faCog, faArchive, faTrash, faSync, faCheck, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faExclamationTriangle, faUpload, faCog, faArchive, faTrash, faSync, faCheck, faArrowLeft, faEdit } from '@fortawesome/free-solid-svg-icons';
 import Spinner from '@/components/elements/Spinner';
+import pako from 'pako';
+import { getFileDownloadUrl } from '../api/files';
+// @ts-ignore
+import nbt from './nbt.js';
 
 const JAVA_SETTINGS = [
   { label: 'MOTD', key: 'motd', type: 'text' },
@@ -134,8 +138,10 @@ export default () => {
   const [gameruleSearch, setGameruleSearch] = useState('');
   const [showSettings, setShowSettings] = useState(false);
 
+  const [isEditingWorld, setIsEditingWorld] = useState(false);
+
   useEffect(() => {
-    getFileContents(server.uuid, 'server.properties').then((content: string) => {
+    getFileContents(server.uuid, 'server.properties').then(async (content: string) => {
       if (content) {
         setProperties(content);
         const map: Record<string, string> = {};
@@ -146,14 +152,52 @@ export default () => {
         });
         setPropsMap(map);
 
-        const seedMatch = content.match(/^level-seed=(.*)$/m);
-        if (seedMatch && seedMatch[1].trim() !== '') setActiveSeed(seedMatch[1].trim());
-        
+        let activeWorldName = 'world';
         const nameMatch = content.match(/^level-name=(.*)$/m);
-        if (nameMatch && nameMatch[1].trim() !== '') setWorldName(nameMatch[1].trim());
+        if (nameMatch && nameMatch[1].trim() !== '') activeWorldName = nameMatch[1].trim();
+        setWorldName(activeWorldName);
+
+        // Try reading server.properties seed first
+        let seed = 'Unknown';
+        const seedMatch = content.match(/^level-seed=(.*)$/m);
+        if (seedMatch && seedMatch[1].trim() !== '') {
+          seed = seedMatch[1].trim();
+        }
+        
+        // Always try to fetch level.dat to get the real active seed
+        try {
+          const downloadUrl = await getFileDownloadUrl(server.uuid, `/${activeWorldName}/level.dat`);
+          if (downloadUrl) {
+            const res = await fetch(downloadUrl);
+            if (res.ok) {
+              const buffer = await res.arrayBuffer();
+              const decompressed = pako.inflate(new Uint8Array(buffer));
+              nbt.parse(decompressed, (err: any, data: any) => {
+                if (!err && data?.value?.Data?.value?.RandomSeed?.value) {
+                  const seedArr = data.value.Data.value.RandomSeed.value;
+                  if (Array.isArray(seedArr) && seedArr.length === 2) {
+                    const high = BigInt(seedArr[0]);
+                    const low = BigInt(seedArr[1] >>> 0); // Unsigned right shift for correct bits
+                    const trueSeed = (high << 32n) | low;
+                    seed = trueSeed.toString();
+                  }
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.error("Failed to read level.dat for seed", e);
+        }
+        setActiveSeed(seed);
       }
     });
   }, [server.uuid]);
+
+  const handleSaveWorldName = async () => {
+    setIsEditingWorld(false);
+    updateProperty('level-name', worldName);
+    await saveAllProperties();
+  };
 
   const handleApplySeed = async () => {
     if (!newSeed) return;
@@ -428,7 +472,24 @@ export default () => {
         </div>
         <div className="bg-gray-900 border border-gray-700 rounded px-4 py-2 flex items-center">
           <span className="text-gray-400 text-sm mr-4">Target World:</span>
-          <span className="text-gray-200 font-mono">{worldName}</span>
+          {isEditingWorld ? (
+            <div className="flex items-center">
+              <input 
+                type="text" 
+                value={worldName} 
+                onChange={e => setWorldName(e.target.value)} 
+                className="bg-gray-800 text-white px-2 py-1 rounded border border-indigo-500 focus:outline-none w-32 font-mono text-sm"
+              />
+              <button onClick={handleSaveWorldName} className="ml-2 text-green-400 hover:text-green-300">
+                <FontAwesomeIcon icon={faCheck} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center cursor-pointer group" onClick={() => setIsEditingWorld(true)}>
+              <span className="text-gray-200 font-mono">{worldName}</span>
+              <FontAwesomeIcon icon={faEdit} className="ml-3 text-gray-600 group-hover:text-indigo-400 transition-colors" />
+            </div>
+          )}
         </div>
       </div>
 

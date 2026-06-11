@@ -115,3 +115,14 @@ export const compressFiles = async (uuid: string, root: string, files: string[])
   const { data } = await http.post(`/api/client/servers/${uuid}/files/compress`, { root, files });
   return data;
 };
+
+export const getFileDownloadUrl = async (uuid: string, file: string): Promise<string> => {
+  try {
+    const { data } = await http.get(`/api/client/servers/${uuid}/files/download`, {
+      params: { file }
+    });
+    return data.attributes?.url || '';
+  } catch (error) {
+    return '';
+  }
+};
