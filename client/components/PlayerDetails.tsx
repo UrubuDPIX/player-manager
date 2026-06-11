@@ -147,7 +147,7 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isH
         }
       `}</style>
       <img 
-        src={isModded ? `http://${window.location.hostname}:8080/icons/${modid}/${itemName}.png` : `https://api.minecraftitems.xyz/api/item/${id}`} 
+        src={isModded ? `http://${window.location.hostname}:8181/icons/${modid}/${itemName}.png` : `https://api.minecraftitems.xyz/api/item/${id}`} 
         alt={id} 
         className="absolute inset-0 m-auto w-[85%] h-[85%] object-contain"
         style={{ imageRendering: 'pixelated' }}

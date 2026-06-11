@@ -14,7 +14,7 @@ app.use('/icons/*', (req, res) => {
     res.status(404).send('Not found');
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8181;
 app.listen(PORT, () => {
     console.log(`=============================================`);
     console.log(`🚀 Servidor de ícones rodando com sucesso!`);
