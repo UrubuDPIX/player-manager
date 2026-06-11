@@ -256,7 +256,7 @@ const panelDir = process.argv[2];
   }
 
   // Now we can inject the JSX block
-  const newPmMatch = fileContent.match(new RegExp(pmMatch[0].replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'), 'i'));
+  const newPmMatch = fileContent.match(new RegExp(pmMatch[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
   if (newPmMatch) {
       fileContent = fileContent.slice(0, newPmMatch.index + newPmMatch[0].length) + inj + fileContent.slice(newPmMatch.index + newPmMatch[0].length);
   } else {
@@ -275,39 +275,36 @@ const panelDir = process.argv[2];
 
   if (c.includes('const getEggBackground')) return;
 
-  const match = c.match(/(export default\\s*(?:function)?\\s*\\w*\\s*\\([^)]*\\)\\s*=>\\s*\\{)/);
+  const match = c.match(/(export default\s*(?:function)?\s*\w*\s*\([^)]*\)\s*=>\s*\{)/);
   if (match) {
-    const inj = `
-    const getEggBackground = (server) => {
-        if (server.bgImage) return \`url(\${server.bgImage})\`;
-        
-        // Extract egg/nest name from Jexactyl's extended server object
-        const eggStr = [
-            server.eggName, server.egg_name, 
-            server.egg?.name, server.egg,
-            server.nestName, server.nest_name, 
-            server.nest?.name, server.nest,
-            server.dockerImage
-        ].filter(Boolean).join(' ').toLowerCase();
-
-        if (eggStr.includes('minecraft') || eggStr.includes('java') || eggStr.includes('modpack') || eggStr.includes('forge') || eggStr.includes('paper') || eggStr.includes('spigot') || eggStr.includes('moon')) {
-            return 'url(https://i.imgur.com/8Q5R0B9.jpg)';
-        }
-        if (eggStr.includes('fivem') || eggStr.includes('gta') || eggStr.includes('redm')) {
-            return 'url(https://i.imgur.com/uRj0yI7.jpg)';
-        }
-        if (eggStr.includes('node') || eggStr.includes('python') || eggStr.includes('bot') || eggStr.includes('discord') || eggStr.includes('js')) {
-            return 'url(https://i.imgur.com/3Y4A65W.jpg)';
-        }
-        if (eggStr.includes('lavalink') || eggStr.includes('music')) {
-            return 'url(https://i.imgur.com/7vjP51v.jpg)';
-        }
-        
-        return '';
-    };
-    const eggBg = getEggBackground(server);
-`;
-    c = c.slice(0, match.index + match[0].length) + inj + c.slice(match.index + match[0].length);
+    const inj = [
+      "    const getEggBackground = (server) => {",
+      "        if (server.bgImage) return `url(${server.bgImage})`;",
+      "        const eggStr = [",
+      "            server.eggName, server.egg_name, ",
+      "            server.egg?.name, server.egg,",
+      "            server.nestName, server.nest_name, ",
+      "            server.nest?.name, server.nest,",
+      "            server.dockerImage",
+      "        ].filter(Boolean).join(' ').toLowerCase();",
+      "        if (eggStr.includes('minecraft') || eggStr.includes('java') || eggStr.includes('modpack') || eggStr.includes('forge') || eggStr.includes('paper') || eggStr.includes('spigot') || eggStr.includes('moon')) {",
+      "            return 'url(https://i.imgur.com/8Q5R0B9.jpg)';",
+      "        }",
+      "        if (eggStr.includes('fivem') || eggStr.includes('gta') || eggStr.includes('redm')) {",
+      "            return 'url(https://i.imgur.com/uRj0yI7.jpg)';",
+      "        }",
+      "        if (eggStr.includes('node') || eggStr.includes('python') || eggStr.includes('bot') || eggStr.includes('discord') || eggStr.includes('js')) {",
+      "            return 'url(https://i.imgur.com/3Y4A65W.jpg)';",
+      "        }",
+      "        if (eggStr.includes('lavalink') || eggStr.includes('music')) {",
+      "            return 'url(https://i.imgur.com/7vjP51v.jpg)';",
+      "        }",
+      "        return '';",
+      "    };",
+      "    const eggBg = getEggBackground(server);"
+    ].join('\n');
+    
+    c = c.slice(0, match.index + match[0].length) + '\n' + inj + '\n' + c.slice(match.index + match[0].length);
     
     const afterInj = c.slice(match.index + match[0].length);
     c = c.slice(0, match.index + match[0].length) + afterInj.replace(/className=/, 'style={eggBg ? { backgroundImage: eggBg, backgroundSize: "cover", backgroundPosition: "center", backgroundBlendMode: "overlay", backgroundColor: "rgba(20, 25, 35, 0.85)" } : {}} className=');
