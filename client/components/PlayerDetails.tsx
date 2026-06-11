@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PageContentBlock from '@/components/elements/PageContentBlock';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faTrash, faCog, faGavel, faCrown, faUserSlash, faRunning, faWrench, faSkull, faShieldAlt, faSync, faBox } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faTrash, faCog, faGavel, faCrown, faUserSlash, faRunning, faWrench, faSkull, faShieldAlt, faSync, faBox, faCopy } from '@fortawesome/free-solid-svg-icons';
 import Button from '@/components/elements/Button';
 import { getPlayerDataUrl, sendCommand, getServerLog, getPlayerStats, listPlayerData, uploadFile } from '../api/files';
 import { ServerContext } from '@/state/server';
@@ -496,52 +496,87 @@ export default ({ player, onBack }: Props) => {
         </h1>
       </div>
 
-      <div className="bg-gray-800 rounded-lg p-6 mb-6">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <div className="text-sm text-gray-400 font-mono mb-2">{player.uuid}</div>
-            <div className="flex gap-2">
-              <span className={`px-2 py-1 text-xs rounded border ${isOnline ? 'bg-green-900 text-green-300 border-green-700' : 'bg-gray-700 text-gray-300 border-gray-600'}`}>
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Left Sidebar */}
+        <div className="w-full lg:w-64 shrink-0 flex flex-col gap-4">
+          {/* Player Overview Card */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h2 className="text-xs uppercase text-gray-400 font-bold mb-4">Player Overview</h2>
+            
+            <div className="bg-gray-900 rounded p-3 mb-3 flex items-center justify-between">
+              <span className="text-gray-300 font-bold text-sm">Status</span>
+              <span className={isOnline ? 'text-green-500 font-bold text-sm flex items-center' : 'text-gray-500 font-bold text-sm flex items-center'}>
+                <span className={`inline-block w-2 h-2 rounded-full mr-2 ${isOnline ? 'bg-green-500' : 'bg-gray-500'}`}></span>
                 {isOnline ? 'Online' : 'Offline'}
               </span>
-              {isOp && <span className="px-2 py-1 bg-yellow-900 text-yellow-300 text-xs rounded border border-yellow-700">OP</span>}
-              <span className="px-2 py-1 bg-blue-900 text-blue-300 text-xs rounded border border-blue-700">
+            </div>
+
+            <div 
+              className="bg-gray-900 rounded p-3 mb-3 flex items-center justify-between group cursor-pointer" 
+              onClick={() => { navigator.clipboard.writeText(player.uuid); addFlash({ type: 'success', key: 'players', message: 'UUID copied!' }); }}
+              title="Click to copy UUID"
+            >
+              <span className="text-gray-400 text-[11px] font-mono truncate mr-2">{player.uuid}</span>
+              <FontAwesomeIcon icon={faCopy} className="text-gray-500 group-hover:text-gray-300" />
+            </div>
+
+            <div className="bg-gray-900 rounded p-3 mb-3 flex items-center justify-between">
+              <span className="text-gray-300 font-bold text-sm">Gamemode</span>
+              <span className="text-indigo-400 font-bold text-sm">
                 {gamemode === 1 ? 'Creative' : gamemode === 2 ? 'Adventure' : gamemode === 3 ? 'Spectator' : 'Survival'}
               </span>
             </div>
-            <div className="text-xs text-green-500 mt-2 flex items-center gap-2">
+
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="bg-gray-900 rounded p-3 text-center flex flex-col justify-center">
+                <span className="text-[10px] text-gray-500 uppercase font-bold mb-1">Playtime</span>
+                <span className="text-gray-300 font-bold text-xs">{playtimeString}</span>
+              </div>
+              <div className="bg-gray-900 rounded p-3 text-center flex flex-col justify-center">
+                <span className="text-[10px] text-gray-500 uppercase font-bold mb-1">Last Seen</span>
+                <span className="text-gray-300 font-bold text-[11px]">{lastSeen.split(',')[0]}</span>
+              </div>
+            </div>
+            
+            {isOp && (
+              <div className="bg-yellow-900/30 border border-yellow-700 rounded p-2 mb-3 text-center text-yellow-500 font-bold text-xs">
+                SERVER OPERATOR
+              </div>
+            )}
+
+            <div className="text-xs text-green-500 mt-2 pt-2 border-t border-gray-700 flex items-center justify-center gap-2">
               <span>Auto-syncing every 10s</span>
               <button onClick={() => fetchNbt(false, true)} className="hover:text-white transition-colors cursor-pointer" title="Force Save & Sync">
                 <FontAwesomeIcon icon={faSync} className={loadingNbt ? "animate-spin text-gray-400" : ""} />
               </button>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button className={activeTab === 'inventory' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-700 hover:bg-gray-600'} onClick={() => setActiveTab('inventory')}>Inventory</Button>
-            <Button className={activeTab === 'manage' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-700 hover:bg-gray-600'} onClick={() => setActiveTab('manage')}>Manage</Button>
-            <Button className={activeTab === 'logs' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-700 hover:bg-gray-600'} onClick={() => setActiveTab('logs')}>Logs</Button>
+
+          {/* Navigation Menu */}
+          <div className="flex flex-col gap-2">
+            <Button 
+              className={`justify-start ${activeTab === 'inventory' ? 'bg-indigo-600 hover:bg-indigo-700 border-indigo-700' : 'bg-gray-800 hover:bg-gray-700 border-gray-700'} text-left px-4 py-3`} 
+              onClick={() => setActiveTab('inventory')}
+            >
+              <FontAwesomeIcon icon={faBox} className="mr-3 w-4" /> Inventory
+            </Button>
+            <Button 
+              className={`justify-start ${activeTab === 'manage' ? 'bg-indigo-600 hover:bg-indigo-700 border-indigo-700' : 'bg-gray-800 hover:bg-gray-700 border-gray-700'} text-left px-4 py-3`} 
+              onClick={() => setActiveTab('manage')}
+            >
+              <FontAwesomeIcon icon={faWrench} className="mr-3 w-4" /> Manage
+            </Button>
+            <Button 
+              className={`justify-start ${activeTab === 'logs' ? 'bg-indigo-600 hover:bg-indigo-700 border-indigo-700' : 'bg-gray-800 hover:bg-gray-700 border-gray-700'} text-left px-4 py-3`} 
+              onClick={() => setActiveTab('logs')}
+            >
+              <FontAwesomeIcon icon={faShieldAlt} className="mr-3 w-4" /> Logs & History
+            </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-4 text-center border-t border-gray-700 pt-6">
-          <div>
-            <div className="text-sm text-gray-400">First Played</div>
-            <div className="font-semibold text-gray-200">{firstPlayed}</div>
-          </div>
-          <div>
-            <div className="text-sm text-gray-400">Last Login</div>
-            <div className="font-semibold text-gray-200">{lastSeen}</div>
-          </div>
-          <div>
-            <div className="text-sm text-gray-400">Last Seen</div>
-            <div className="font-semibold text-gray-200">{lastSeen}</div>
-          </div>
-          <div>
-            <div className="text-sm text-gray-400">Playtime</div>
-            <div className="font-semibold text-gray-200">{playtimeString}</div>
-          </div>
-        </div>
-      </div>
+        {/* Main Content Area */}
+        <div className="flex-1">
 
       {activeTab === 'inventory' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -860,6 +895,8 @@ export default ({ player, onBack }: Props) => {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </PageContentBlock>
   );
 };
