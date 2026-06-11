@@ -241,6 +241,64 @@ export default ({ player, onBack }: Props) => {
     }
   };
 
+  const handleClearInventory = async () => {
+    if (!confirm(`Tem certeza que deseja limpar todo o inventário de ${player.name}?`)) return;
+    
+    if (isOnline) {
+      executeCommand(`clear ${player.name}`, 'Inventário limpo com sucesso no servidor.');
+    } else {
+      if (!nbtData || !nbtData.value || !nbtData.value.Inventory) return;
+      
+      const newNbtData = { ...nbtData };
+      newNbtData.value.Inventory = { type: 'list', value: { type: 'compound', value: [] } };
+      
+      setNbtData(newNbtData);
+
+      try {
+        const buffer = nbt.writeUncompressed(newNbtData);
+        const gzipped = pako.gzip(buffer);
+        await uploadFile(server.uuid, 'world/playerdata', `${player.uuid}.dat`, gzipped);
+        
+        lastSaveTimeRef.current = Date.now();
+        clearFlashes('players');
+        addFlash({ key: 'players', type: 'success', message: 'Inventário limpo e salvo no servidor!' });
+      } catch (e) {
+        console.error('Failed to upload NBT:', e);
+        addFlash({ key: 'players', type: 'danger', message: 'Erro ao limpar o inventário no servidor.' });
+      }
+    }
+  };
+
+  const handleHealAndFeed = async () => {
+    if (isOnline) {
+      executeCommand(`effect clear ${player.name}`, 'Limpando efeitos...');
+      executeCommand(`effect give ${player.name} minecraft:instant_health 1 100 true`, 'Vida e fome curadas no servidor.');
+      executeCommand(`effect give ${player.name} minecraft:saturation 1 100 true`, '');
+    } else {
+      if (!nbtData || !nbtData.value) return;
+      
+      const newNbtData = { ...nbtData };
+      newNbtData.value.Health = { type: 'float', value: 20.0 };
+      newNbtData.value.foodLevel = { type: 'int', value: 20 };
+      newNbtData.value.foodSaturationLevel = { type: 'float', value: 5.0 };
+      
+      setNbtData(newNbtData);
+
+      try {
+        const buffer = nbt.writeUncompressed(newNbtData);
+        const gzipped = pako.gzip(buffer);
+        await uploadFile(server.uuid, 'world/playerdata', `${player.uuid}.dat`, gzipped);
+        
+        lastSaveTimeRef.current = Date.now();
+        clearFlashes('players');
+        addFlash({ key: 'players', type: 'success', message: 'Jogador curado e alimentado offline!' });
+      } catch (e) {
+        console.error('Failed to upload NBT:', e);
+        addFlash({ key: 'players', type: 'danger', message: 'Erro ao curar o jogador no servidor.' });
+      }
+    }
+  };
+
   const handleMoveItem = async (fromSlot: number, toSlot: number) => {
     if (isOnline) {
       addFlash({ key: 'players', type: 'warning', message: 'O jogador está online! Para mover itens, ele precisa deslogar.' });
@@ -620,10 +678,10 @@ export default ({ player, onBack }: Props) => {
                    Dimension: {nbtData?.value?.Dimension?.value?.replace('minecraft:', '') || 'World'}
                  </div>
                  <div className="flex gap-2">
-                   <button className="bg-red-500 w-10 h-10 rounded flex items-center justify-center text-white hover:bg-red-600 shadow border-2 border-red-700">
+                   <button onClick={handleClearInventory} className="bg-red-500 w-10 h-10 rounded flex items-center justify-center text-white hover:bg-red-600 shadow border-2 border-red-700" title="Clear Inventory">
                      <FontAwesomeIcon icon={faTrash} />
                    </button>
-                   <button className="bg-purple-500 w-10 h-10 rounded flex items-center justify-center text-white hover:bg-purple-600 shadow border-2 border-purple-700">
+                   <button onClick={handleHealAndFeed} className="bg-purple-500 w-10 h-10 rounded flex items-center justify-center text-white hover:bg-purple-600 shadow border-2 border-purple-700" title="Heal & Feed">
                      <FontAwesomeIcon icon={faCog} />
                    </button>
                  </div>
