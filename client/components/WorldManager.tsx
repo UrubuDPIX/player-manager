@@ -4,8 +4,83 @@ import useFlash from '@/plugins/useFlash';
 import Button from '@/components/elements/Button';
 import { getFileContents, saveFileContents, deleteFiles, compressFiles, uploadFile } from '../api/files';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGlobe, faExclamationTriangle, faUpload, faCog, faArchive, faTrash, faSync, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faExclamationTriangle, faUpload, faCog, faArchive, faTrash, faSync, faCheck, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import Spinner from '@/components/elements/Spinner';
+
+const JAVA_SETTINGS = [
+  { label: 'MOTD', key: 'motd', type: 'text' },
+  { label: 'Server IP', key: 'server-ip', type: 'text' },
+  { label: 'Server Port', key: 'server-port', type: 'text' },
+  { label: 'Max Players', key: 'max-players', type: 'text' },
+  { label: 'Online Mode', key: 'online-mode', type: 'toggle' },
+  { label: 'Enforce Secure Profile', key: 'enforce-secure-profile', type: 'toggle' },
+  { label: 'Prevent Proxy Connections', key: 'prevent-proxy-connections', type: 'toggle' },
+  { label: 'Hide Online Players', key: 'hide-online-players', type: 'toggle' },
+  { label: 'Enable Status', key: 'enable-status', type: 'toggle' },
+  { label: 'Status Heartbeat Interval', key: 'status-heartbeat-interval', type: 'text' },
+  { label: 'Game Mode', key: 'gamemode', type: 'text' },
+  { label: 'Force Game Mode', key: 'force-gamemode', type: 'toggle' },
+  { label: 'Difficulty', key: 'difficulty', type: 'text' },
+  { label: 'Hardcore', key: 'hardcore', type: 'toggle' },
+  { label: 'PVP', key: 'pvp', type: 'toggle' },
+  { label: 'Allow Flight', key: 'allow-flight', type: 'toggle' },
+  { label: 'Spawn Protection', key: 'spawn-protection', type: 'text' },
+  { label: 'Idle Timeout', key: 'player-idle-timeout', type: 'text' },
+  { label: 'Whitelist', key: 'white-list', type: 'toggle' },
+  { label: 'Enforce Whitelist', key: 'enforce-whitelist', type: 'toggle' },
+  { label: 'OP Permission Level', key: 'op-permission-level', type: 'text' },
+  { label: 'Function Permission Level', key: 'function-permission-level', type: 'text' },
+  { label: 'Spawn Monsters', key: 'spawn-monsters', type: 'toggle' },
+  { label: 'Spawn Animals', key: 'spawn-animals', type: 'toggle' },
+  { label: 'Spawn NPCs', key: 'spawn-npcs', type: 'toggle' },
+  { label: 'Generate Structures', key: 'generate-structures', type: 'toggle' },
+  { label: 'Level Name', key: 'level-name', type: 'text' },
+  { label: 'Level Seed', key: 'level-seed', type: 'text' },
+  { label: 'Level Type', key: 'level-type', type: 'text' },
+  { label: 'Generator Settings', key: 'generator-settings', type: 'text' },
+  { label: 'Initial Enabled Packs', key: 'initial-enabled-packs', type: 'text' },
+  { label: 'Initial Disabled Packs', key: 'initial-disabled-packs', type: 'text' },
+  { label: 'Max World Size', key: 'max-world-size', type: 'text' },
+  { label: 'View Distance', key: 'view-distance', type: 'text' },
+  { label: 'Simulation Distance', key: 'simulation-distance', type: 'text' },
+  { label: 'Entity Broadcast Range', key: 'entity-broadcast-range-percentage', type: 'text' },
+  { label: 'Max Tick Time', key: 'max-tick-time', type: 'text' },
+  { label: 'Max Chained Neighbor Updates', key: 'max-chained-neighbor-updates', type: 'text' },
+  { label: 'Sync Chunk Writes', key: 'sync-chunk-writes', type: 'toggle' },
+  { label: 'Region File Compression', key: 'region-file-compression', type: 'text' },
+  { label: 'Network Compression Threshold', key: 'network-compression-threshold', type: 'text' },
+  { label: 'Native Transport', key: 'use-native-transport', type: 'toggle' },
+  { label: 'Rate Limit', key: 'rate-limit', type: 'text' },
+  { label: 'Log IPs', key: 'log-ips', type: 'toggle' },
+  { label: 'Enable Query', key: 'enable-query', type: 'toggle' },
+  { label: 'Query Port', key: 'query.port', type: 'text' },
+  { label: 'Enable RCON', key: 'enable-rcon', type: 'toggle' },
+  { label: 'RCON Port', key: 'rcon.port', type: 'text' },
+  { label: 'RCON Password', key: 'rcon.password', type: 'text' },
+  { label: 'Broadcast Console To OPs', key: 'broadcast-console-to-ops', type: 'toggle' },
+  { label: 'Broadcast RCON To OPs', key: 'broadcast-rcon-to-ops', type: 'toggle' },
+  { label: 'Resource Pack URL', key: 'resource-pack', type: 'text' },
+  { label: 'Resource Pack ID', key: 'resource-pack-id', type: 'text' },
+  { label: 'Resource Pack SHA1', key: 'resource-pack-sha1', type: 'text' },
+  { label: 'Resource Pack Prompt', key: 'resource-pack-prompt', type: 'text' },
+  { label: 'Require Resource Pack', key: 'require-resource-pack', type: 'toggle' },
+  { label: 'Accepts Transfers', key: 'accepts-transfers', type: 'toggle' },
+  { label: 'Code Of Conduct', key: 'enable-code-of-conduct', type: 'toggle' },
+  { label: 'Bug Report Link', key: 'bug-report-link', type: 'text' },
+  { label: 'Text Filtering Config', key: 'text-filtering-config', type: 'text' },
+  { label: 'Text Filtering Version', key: 'text-filtering-version', type: 'text' },
+  { label: 'Pause When Empty', key: 'pause-when-empty-seconds', type: 'text' },
+  { label: 'Debug', key: 'debug', type: 'toggle' },
+  { label: 'JMX Monitoring', key: 'enable-jmx-monitoring', type: 'toggle' },
+  { label: 'Management Server', key: 'management-server-enabled', type: 'toggle' },
+  { label: 'Management Host', key: 'management-server-host', type: 'text' },
+  { label: 'Management Port', key: 'management-server-port', type: 'text' },
+  { label: 'Management Secret', key: 'management-server-secret', type: 'text' },
+  { label: 'Management TLS', key: 'management-server-tls-enabled', type: 'toggle' },
+  { label: 'Management TLS Keystore', key: 'management-server-tls-keystore', type: 'text' },
+  { label: 'Management TLS Password', key: 'management-server-tls-keystore-password', type: 'text' },
+  { label: 'Management Allowed Origins', key: 'management-server-allowed-origins', type: 'text' },
+];
 
 export default () => {
   const server = ServerContext.useStoreState(state => state.server.data!);
@@ -151,6 +226,103 @@ export default () => {
 
   const isOnline = status !== 'offline';
 
+  if (showSettings) {
+    return (
+      <div className="mt-4 animate-fade-in">
+        <div className="bg-gray-800 rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center border border-gray-700 shadow-md">
+          <div className="flex items-center mb-4 md:mb-0">
+            <Button color="grey" onClick={() => setShowSettings(false)} className="mr-4">
+              <FontAwesomeIcon icon={faArrowLeft} />
+            </Button>
+            <div>
+              <h2 className="text-xl font-bold text-gray-100">Management Options</h2>
+              <p className="text-sm text-gray-400 uppercase tracking-wide">Currently editing: <span className="text-indigo-400 font-bold">WORLD JAVA</span></p>
+            </div>
+          </div>
+          <Button color="green" onClick={() => saveAllProperties()}>
+            Save Changes
+          </Button>
+        </div>
+
+        <div className="bg-[#1e2532] rounded-lg border border-[#2b3544] p-6 shadow-xl">
+          <div className="flex items-center mb-6 border-b border-[#2b3544] pb-4">
+            <FontAwesomeIcon icon={faCog} className="mr-2 text-gray-400" />
+            <h3 className="text-lg font-bold text-gray-200">JAVA SERVER SETTINGS</h3>
+          </div>
+
+          <div className="relative mb-8">
+            <input 
+              type="text" 
+              placeholder="Search Java server settings..." 
+              className="w-full bg-[#151a23] border border-[#2b3544] text-gray-200 px-10 py-3 rounded-lg focus:outline-none focus:border-indigo-500 shadow-inner"
+              value={settingsSearch}
+              onChange={(e) => setSettingsSearch(e.target.value)}
+            />
+            <FontAwesomeIcon icon={faCog} className="absolute left-4 top-3.5 text-gray-500" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {JAVA_SETTINGS.filter(s => s.label.toLowerCase().includes(settingsSearch.toLowerCase()) || s.key.includes(settingsSearch.toLowerCase())).map(setting => (
+              <div key={setting.key} className="bg-[#151a23] border border-[#2b3544] rounded-xl p-5 hover:border-indigo-500/50 transition-colors">
+                <h4 className="font-bold text-gray-100 text-sm">{setting.label}</h4>
+                <p className="text-xs text-gray-500 font-mono mb-4 mt-1">{setting.key}</p>
+                
+                {setting.type === 'text' ? (
+                  <input 
+                    type="text"
+                    className="w-full bg-[#1e2532] border border-[#2b3544] text-gray-200 px-4 py-2 rounded-lg text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow"
+                    value={propsMap[setting.key] || ''}
+                    onChange={(e) => updateProperty(setting.key, e.target.value)}
+                    placeholder="Unset"
+                  />
+                ) : (
+                  <div className="flex items-center mt-2 cursor-pointer" onClick={() => updateProperty(setting.key, propsMap[setting.key] === 'true' ? 'false' : 'true')}>
+                    <div className={`w-12 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out ${propsMap[setting.key] === 'true' ? 'bg-indigo-500' : 'bg-[#2b3544]'}`}>
+                      <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${propsMap[setting.key] === 'true' ? 'translate-x-6' : ''}`}></div>
+                    </div>
+                    <div className="ml-4 flex flex-col">
+                      <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">{setting.label}</span>
+                      <span className="text-xs text-gray-500">{propsMap[setting.key] === 'true' ? 'Enabled' : 'Disabled'}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 border-t border-[#2b3544] pt-6">
+            <div className="bg-red-500/10 border-l-4 border-red-500 text-red-500 p-4 rounded-r-lg mb-2 text-sm font-bold">
+              Failed to save gamerules.
+            </div>
+            <div className="bg-red-500/10 border-l-4 border-red-500 text-red-500 p-4 rounded-r-lg mb-6 text-sm font-bold">
+              Failed to save gamerules.
+            </div>
+
+            <div className="flex items-center mb-6 pb-4">
+              <FontAwesomeIcon icon={faCog} className="mr-2 text-gray-400" />
+              <h3 className="text-lg font-bold text-gray-200 uppercase">Active Game Rules</h3>
+            </div>
+            <input 
+              type="text" 
+              placeholder="Search gamerules..." 
+              className="w-full bg-[#151a23] border border-[#2b3544] text-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:border-indigo-500 shadow-inner mb-6"
+              disabled
+            />
+            <div className="text-center p-10 bg-[#151a23] border border-[#2b3544] rounded-xl text-gray-500">
+              Gamerules management requires the server to be online or NBT write permissions.
+            </div>
+          </div>
+        </div>
+
+        {loading && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm">
+            <Spinner size="large" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="mt-4 animate-fade-in">
       {/* Header */}
@@ -265,7 +437,7 @@ export default () => {
               <h4 className="font-bold text-gray-200 mb-1">Server Properties</h4>
               <p className="text-sm text-gray-400 mb-4">Edit advanced Java server settings like MOTD, Max Players, etc.</p>
             </div>
-            <Button color="primary" onClick={() => setShowSettings(!showSettings)} className="w-full justify-center">
+            <Button color="primary" onClick={() => setShowSettings(true)} className="w-full justify-center">
               <FontAwesomeIcon icon={faCog} className="mr-2" /> Manage Settings
             </Button>
           </div>
@@ -291,64 +463,6 @@ export default () => {
           </div>
         </div>
       </div>
-
-      {/* Java Server Settings */}
-      {showSettings && (
-        <div className="bg-[#1e2532] rounded-lg border border-[#2b3544] p-6 mb-6 animate-fade-in shadow-xl">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-200 flex items-center">
-              <FontAwesomeIcon icon={faCog} className="mr-2 text-gray-400" /> JAVA SERVER SETTINGS
-            </h3>
-            <Button color="green" size="small" onClick={() => saveAllProperties()}>Save Changes</Button>
-          </div>
-
-          <input 
-            type="text" 
-            placeholder="Search Java server settings..." 
-            className="w-full bg-[#151a23] border border-[#2b3544] text-gray-200 px-4 py-2 rounded mb-6 focus:outline-none focus:border-indigo-500"
-            value={settingsSearch}
-            onChange={(e) => setSettingsSearch(e.target.value)}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { label: 'MOTD', key: 'motd', type: 'text' },
-              { label: 'Server IP', key: 'server-ip', type: 'text' },
-              { label: 'Server Port', key: 'server-port', type: 'text' },
-              { label: 'Max Players', key: 'max-players', type: 'text' },
-              { label: 'Online Mode', key: 'online-mode', type: 'toggle' },
-              { label: 'Enforce Secure Profile', key: 'enforce-secure-profile', type: 'toggle' },
-              { label: 'Prevent Proxy Connections', key: 'prevent-proxy-connections', type: 'toggle' },
-              { label: 'Hide Online Players', key: 'hide-online-players', type: 'toggle' },
-              { label: 'Enable Status', key: 'enable-status', type: 'toggle' }
-            ].filter(s => s.label.toLowerCase().includes(settingsSearch.toLowerCase()) || s.key.includes(settingsSearch.toLowerCase())).map(setting => (
-              <div key={setting.key} className="bg-[#151a23] border border-[#2b3544] rounded-lg p-4">
-                <h4 className="font-bold text-gray-200 text-sm">{setting.label}</h4>
-                <p className="text-xs text-gray-500 font-mono mb-4 mt-1">{setting.key}</p>
-                
-                {setting.type === 'text' ? (
-                  <input 
-                    type="text"
-                    className="w-full bg-[#1e2532] border border-[#2b3544] text-gray-200 px-3 py-2 rounded text-sm focus:outline-none focus:border-indigo-500"
-                    value={propsMap[setting.key] || ''}
-                    onChange={(e) => updateProperty(setting.key, e.target.value)}
-                  />
-                ) : (
-                  <div className="flex items-center mt-2 cursor-pointer" onClick={() => updateProperty(setting.key, propsMap[setting.key] === 'true' ? 'false' : 'true')}>
-                    <div className={`w-10 h-5 flex items-center bg-gray-600 rounded-full p-1 duration-300 ease-in-out ${propsMap[setting.key] === 'true' ? 'bg-indigo-500' : 'bg-gray-600'}`}>
-                      <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${propsMap[setting.key] === 'true' ? 'translate-x-4' : ''}`}></div>
-                    </div>
-                    <div className="ml-3">
-                      <span className="text-xs font-bold text-gray-300 uppercase tracking-wide">{setting.label}</span>
-                      <p className="text-xs text-gray-500">{propsMap[setting.key] === 'true' ? 'Enabled' : 'Disabled'}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {loading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
