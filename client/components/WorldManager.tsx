@@ -22,11 +22,11 @@ export default () => {
   const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
-    getFileContents(server.uuid, 'server.properties').then(content => {
+    getFileContents(server.uuid, 'server.properties').then((content: string) => {
       if (content) {
         setProperties(content);
         const map: Record<string, string> = {};
-        content.split('\n').forEach(line => {
+        content.split('\n').forEach((line: string) => {
           if (line.startsWith('#') || line.trim() === '') return;
           const [k, ...v] = line.split('=');
           if (k) map[k.trim()] = v.join('=').trim();
