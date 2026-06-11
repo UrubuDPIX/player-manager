@@ -6,6 +6,7 @@ import { getFileContents, saveFileContents, deleteFiles, compressFiles, uploadFi
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobe, faExclamationTriangle, faUpload, faCog, faArchive, faTrash, faSync, faCheck, faArrowLeft, faEdit } from '@fortawesome/free-solid-svg-icons';
 import Spinner from '@/components/elements/Spinner';
+// @ts-ignore
 import pako from 'pako';
 import { getFileDownloadUrl } from '../api/files';
 // @ts-ignore
@@ -178,7 +179,7 @@ export default () => {
                   if (Array.isArray(seedArr) && seedArr.length === 2) {
                     const high = BigInt(seedArr[0]);
                     const low = BigInt(seedArr[1] >>> 0); // Unsigned right shift for correct bits
-                    const trueSeed = (high << 32n) | low;
+                    const trueSeed = (high * BigInt("4294967296")) + low;
                     seed = trueSeed.toString();
                   }
                 }
