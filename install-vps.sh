@@ -315,11 +315,67 @@ const panelDir = process.argv[2];
     c = c.slice(0, match.index + match[0].length) + '\n' + inj + '\n' + c.slice(match.index + match[0].length);
     
     const afterInj = c.slice(match.index + match[0].length);
-    c = c.slice(0, match.index + match[0].length) + afterInj.replace(/className=/, 'style={eggBg ? { backgroundImage: eggBg, backgroundSize: "cover", backgroundPosition: "center", backgroundBlendMode: "overlay", backgroundColor: "rgba(20, 25, 35, 0.85)" } : {}} className=');
+    c = c.slice(0, match.index + match[0].length) + afterInj.replace(/className=/, 'style={eggBg ? { backgroundImage: eggBg, backgroundSize: "cover", backgroundPosition: "center", backgroundBlendMode: "overlay", backgroundColor: "rgba(15, 20, 25, 0.82)", padding: "1rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.08)" } : { padding: "1rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.08)", backgroundColor: "rgba(15, 20, 25, 0.6)", backdropFilter: "blur(12px)" }} className=');
 
     fs.writeFileSync(srPath, c);
     console.log('✓ Sistema de Background Automático por Egg injetado no ServerRow.tsx!');
   }
+})();
+
+// 5. Patch Tailwind CSS for Euphoria Theme
+(function patchGlobalTheme() {
+    const cssPath = path.join(panelDir, 'resources/scripts/assets/tailwind.css');
+    if (!fs.existsSync(cssPath)) return;
+    
+    let css = fs.readFileSync(cssPath, 'utf8');
+    if (css.includes('EUPHORIA THEME OVERRIDES')) {
+        console.log('✓ Tema Euphoria já estava aplicado no tailwind.css!');
+        return;
+    }
+
+    const themeCss = `
+/* ==========================================================================
+   EUPHORIA THEME OVERRIDES (Injetado pelo Player Manager)
+   ========================================================================== */
+
+/* Remove fundos sólidos do corpo da página para dar espaço ao Glassmorphism */
+body, #app, #app > div, #app > div > div {
+    background: transparent !important;
+}
+
+/* Background Global do Painel */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background-image: url('https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/user-minecraft.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    filter: blur(4px) brightness(0.65);
+    z-index: -1;
+}
+
+/* Aplica o efeito de Glassmorphism nas Sidebars, Navbars e modais */
+.bg-neutral-900, .bg-neutral-800, .bg-gray-900, .bg-gray-800, .bg-gray-700 {
+    background-color: rgba(15, 15, 20, 0.45) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Deixa os botões de ações mais suaves */
+button {
+    backdrop-filter: blur(4px) !important;
+}
+
+/* Remove a sombra pesada nativa do Pterodactyl */
+.shadow-md {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+}
+`;
+    fs.writeFileSync(cssPath, css + '\\n' + themeCss);
+    console.log('✓ Tema Euphoria (Glassmorphism + Cards Menores) injetado com sucesso no CSS Global!');
 })();
 JSEOF
     } > "$JS"
