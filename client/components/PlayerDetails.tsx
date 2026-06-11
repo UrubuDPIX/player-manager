@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import PageContentBlock from '@/components/elements/PageContentBlock';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faTrash, faCog, faGavel, faCrown, faUserSlash, faRunning, faWrench, faSkull, faShieldAlt, faSync, faBox, faCopy } from '@fortawesome/free-solid-svg-icons';
@@ -13,7 +13,7 @@ const nbt = require('./nbt');
 const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isHotbarSlot = false, className = "" }: { item?: any, slotIndex?: number, onMoveItem?: (from: number, to: number) => void, isTransparent?: boolean, isHotbarSlot?: boolean, className?: string }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const sizeClasses = isHotbarSlot ? 'w-[40px] h-[40px] min-w-[40px] min-h-[40px]' : 'w-10 h-10 md:w-12 md:h-12 min-w-[40px] min-h-[40px] md:min-w-[48px] md:min-h-[48px]';
+  const sizeClasses = isHotbarSlot ? 'w-[48px] h-[48px] min-w-[48px] min-h-[48px]' : 'w-[48px] h-[48px] md:w-[56px] md:h-[56px] min-w-[48px] min-h-[48px] md:min-w-[56px] md:min-h-[56px]';
   const bgClasses = isTransparent ? 'bg-transparent' : 'bg-[#8b8b8b] border-2 border-[#373737] border-t-[#ffffff] border-l-[#ffffff]';
 
   if (!item) {
@@ -218,6 +218,7 @@ interface Props {
 export default ({ player, onBack }: Props) => {
   const server = ServerContext.useStoreState(state => state.server.data!);
   const { addFlash, clearFlashes } = useFlash();
+  const lastSaveTimeRef = useRef<number>(0);
   const [nbtData, setNbtData] = useState<any>(null);
   const [statsData, setStatsData] = useState<any>(null);
   const [firstPlayed, setFirstPlayed] = useState<string>('Unknown');
@@ -276,6 +277,8 @@ export default ({ player, onBack }: Props) => {
         const gzipped = pako.gzip(buffer);
         await uploadFile(server.uuid, 'world/playerdata', `${player.uuid}.dat`, gzipped);
         
+        lastSaveTimeRef.current = Date.now();
+        
         clearFlashes('players');
         addFlash({ key: 'players', type: 'success', message: 'Inventário atualizado e salvo no servidor!' });
       } catch (e) {
@@ -317,7 +320,13 @@ export default ({ player, onBack }: Props) => {
       const playerFile = files.find((f: any) => f.attributes.name === `${player.uuid}.dat`);
       if (playerFile) {
         const modTime = new Date(playerFile.attributes.modified_at).getTime();
-        setIsOnline(Math.abs(serverTime - modTime) < 25000);
+        
+        const timeSinceOurSave = Date.now() - lastSaveTimeRef.current;
+        if (timeSinceOurSave < 35000) {
+           setIsOnline(false);
+        } else {
+           setIsOnline(Math.abs(serverTime - modTime) < 25000);
+        }
         
         const spZone = 'America/Sao_Paulo';
         const formatOptions: Intl.DateTimeFormatOptions = { 
@@ -681,17 +690,17 @@ export default ({ player, onBack }: Props) => {
             <div 
               className="relative w-max mt-2 mx-auto" 
               style={{ 
-                width: '455px',
-                height: '55px',
+                width: '546px',
+                height: '66px',
                 backgroundImage: 'url(https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.1/assets/minecraft/textures/gui/widgets.png)',
-                backgroundSize: '640px 640px',
+                backgroundSize: '768px 768px',
                 backgroundPosition: '0px 0px',
                 imageRendering: 'pixelated',
-                paddingTop: '7.5px',
-                paddingLeft: '7.5px'
+                paddingTop: '9px',
+                paddingLeft: '9px'
               }}
             >
-              <div className="flex gap-[10px]">
+              <div className="flex gap-[12px]">
                 {Array.from({ length: 9 }).map((_, i) => (
                   <InventorySlot key={`hotbar-${i}`} item={inventory.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} slotIndex={i} onMoveItem={handleMoveItem} isTransparent={true} isHotbarSlot={true} />
                 ))}
