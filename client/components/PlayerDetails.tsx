@@ -104,17 +104,20 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isH
   
   const getEnchants = () => {
     let enchs: string[] = [];
-    if (item.tag?.value?.Enchantments?.value?.value) {
-      const list = item.tag.value.Enchantments.value.value;
-      list.forEach((e: any) => {
+    const legacyEnchs = item.tag?.value?.Enchantments?.value?.value || item.tag?.value?.StoredEnchantments?.value?.value;
+    
+    if (legacyEnchs) {
+      legacyEnchs.forEach((e: any) => {
         const eid = e.id?.value?.replace('minecraft:', '');
         const lvl = e.lvl?.value;
         if (eid) enchs.push(`${eid} ${lvl}`);
       });
-    } else if (item.components?.value?.['minecraft:enchantments']?.value?.levels?.value) {
-      const levels = item.components.value['minecraft:enchantments'].value.levels.value;
-      for (const [key, val] of Object.entries(levels)) {
-        enchs.push(`${key.replace('minecraft:', '')} ${(val as any).value}`);
+    } else {
+      const levels = item.components?.value?.['minecraft:enchantments']?.value?.levels?.value || item.components?.value?.['minecraft:stored_enchantments']?.value?.levels?.value;
+      if (levels) {
+        for (const [key, val] of Object.entries(levels)) {
+          enchs.push(`${key.replace('minecraft:', '')} ${(val as any).value}`);
+        }
       }
     }
     
@@ -130,8 +133,12 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isH
   const getCustomName = () => {
     try {
       const customNameStr = item.components?.value?.['minecraft:custom_name']?.value || item.tag?.value?.display?.value?.Name?.value;
+      const itemNameStr = item.components?.value?.['minecraft:item_name']?.value;
+      
       if (customNameStr) {
         return renderMinecraftTextToHTML(customNameStr, '#55FFFF');
+      } else if (itemNameStr) {
+        return renderMinecraftTextToHTML(itemNameStr, '#FFFFFF');
       }
     } catch(e) {}
     return null;
