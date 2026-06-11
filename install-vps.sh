@@ -274,11 +274,9 @@ const panelDir = process.argv[2];
   let c = fs.readFileSync(srPath, 'utf8');
 
   if (c.includes('const getEggBackground')) {
-      // Fix implicit any if it's the old injection
-      c = c.replace('const getEggBackground = (server) => {', 'const getEggBackground = (server: any) => {');
-      fs.writeFileSync(srPath, c);
-      console.log('✓ Tipagem any do Background Automático corrigida no ServerRow.tsx!');
-      return;
+      // Remove old injection entirely so we can inject the new one with updated URLs
+      c = c.replace(/\s*const getEggBackground = \(server(: any)?\) => \{[\s\S]*?const eggBg = getEggBackground\(server\);/, '');
+      c = c.replace(/style=\{eggBg \? \{[^}]*\} : \{\}\} /, '');
   }
 
   const match = c.match(/(export default\s*(?:function)?\s*\w*\s*\([^)]*\)\s*=>\s*\{)/);
@@ -294,16 +292,16 @@ const panelDir = process.argv[2];
       "            server.dockerImage",
       "        ].filter(Boolean).join(' ').toLowerCase();",
       "        if (eggStr.includes('minecraft') || eggStr.includes('java') || eggStr.includes('modpack') || eggStr.includes('forge') || eggStr.includes('paper') || eggStr.includes('spigot') || eggStr.includes('moon')) {",
-      "            return 'url(https://i.imgur.com/8Q5R0B9.jpg)';",
+      "            return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/bg-minecraft.png)';",
       "        }",
       "        if (eggStr.includes('fivem') || eggStr.includes('gta') || eggStr.includes('redm')) {",
-      "            return 'url(https://i.imgur.com/uRj0yI7.jpg)';",
+      "            return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/bg-fivem.png)';",
       "        }",
       "        if (eggStr.includes('node') || eggStr.includes('python') || eggStr.includes('bot') || eggStr.includes('discord') || eggStr.includes('js')) {",
-      "            return 'url(https://i.imgur.com/3Y4A65W.jpg)';",
+      "            return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/bg-bot.png)';",
       "        }",
       "        if (eggStr.includes('lavalink') || eggStr.includes('music')) {",
-      "            return 'url(https://i.imgur.com/7vjP51v.jpg)';",
+      "            return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/bg-music.png)';",
       "        }",
       "        return '';",
       "    };",
