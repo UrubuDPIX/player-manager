@@ -147,7 +147,7 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isH
         }
       `}</style>
       <img 
-        src={isModded ? `/icons/${modid}/${itemName}.png` : `https://api.minecraftitems.xyz/api/item/${id}`} 
+        src={isModded ? (textureMap[rawId] ? `/icons/${textureMap[rawId]}` : `/icons/${modid}/item/${itemName}.png`) : `https://api.minecraftitems.xyz/api/item/${id}`} 
         alt={id} 
         className="absolute inset-0 m-auto w-[85%] h-[85%] object-contain"
         style={{ imageRendering: 'pixelated' }}
@@ -238,6 +238,14 @@ export default ({ player, onBack }: Props) => {
   
   const [playerLogs, setPlayerLogs] = useState<string[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [textureMap, setTextureMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetch('/icons/texture_map.json')
+      .then(res => res.json())
+      .then(data => setTextureMap(data))
+      .catch(err => console.error('Failed to load texture map:', err));
+  }, []);
 
   const executeCommand = async (command: string, successMessage: string) => {
     try {
