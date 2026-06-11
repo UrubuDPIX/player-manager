@@ -1,4 +1,5 @@
 import http from '@/api/http';
+import axios from 'axios';
 
 export interface UserCacheEntry {
   name: string;
@@ -83,11 +84,7 @@ export const uploadFile = async (uuid: string, directory: string, fileName: stri
     const fileBlob = fileContent instanceof Blob ? fileContent : new Blob([fileContent], { type: 'application/octet-stream' });
     formData.append('files', fileBlob, fileName);
 
-    await http.post(`${uploadUrl}&directory=${encodeURIComponent(directory)}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    await axios.post(`${uploadUrl}&directory=${encodeURIComponent(directory)}`, formData);
   } catch (error) {
     console.error('Failed to upload file:', error);
     throw error;
