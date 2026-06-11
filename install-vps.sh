@@ -280,12 +280,29 @@ const panelDir = process.argv[2];
     const inj = \`
     const getEggBackground = (server) => {
         if (server.bgImage) return \\\`url(\\\${server.bgImage})\\\`;
-        const img = (server.dockerImage || '').toLowerCase();
-        const name = (server.name || '').toLowerCase();
-        if (img.includes('java') || img.includes('minecraft') || name.includes('minecraft') || name.includes('modpack') || name.includes('moon')) return 'url(https://i.imgur.com/8Q5R0B9.jpg)';
-        if (img.includes('fivem') || name.includes('fivem') || name.includes('gta')) return 'url(https://i.imgur.com/uRj0yI7.jpg)';
-        if (img.includes('node') || img.includes('python') || name.includes('bot') || name.includes('discord')) return 'url(https://i.imgur.com/3Y4A65W.jpg)';
-        if (name.includes('lavalink') || name.includes('music')) return 'url(https://i.imgur.com/7vjP51v.jpg)';
+        
+        // Extract egg/nest name from Jexactyl's extended server object
+        const eggStr = [
+            server.eggName, server.egg_name, 
+            server.egg?.name, server.egg,
+            server.nestName, server.nest_name, 
+            server.nest?.name, server.nest,
+            server.dockerImage
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        if (eggStr.includes('minecraft') || eggStr.includes('java') || eggStr.includes('modpack') || eggStr.includes('forge') || eggStr.includes('paper') || eggStr.includes('spigot') || eggStr.includes('moon')) {
+            return 'url(https://i.imgur.com/8Q5R0B9.jpg)';
+        }
+        if (eggStr.includes('fivem') || eggStr.includes('gta') || eggStr.includes('redm')) {
+            return 'url(https://i.imgur.com/uRj0yI7.jpg)';
+        }
+        if (eggStr.includes('node') || eggStr.includes('python') || eggStr.includes('bot') || eggStr.includes('discord') || eggStr.includes('js')) {
+            return 'url(https://i.imgur.com/3Y4A65W.jpg)';
+        }
+        if (eggStr.includes('lavalink') || eggStr.includes('music')) {
+            return 'url(https://i.imgur.com/7vjP51v.jpg)';
+        }
+        
         return '';
     };
     const eggBg = getEggBackground(server);
