@@ -90,3 +90,28 @@ export const uploadFile = async (uuid: string, directory: string, fileName: stri
     throw error;
   }
 };
+
+export const getFileContents = async (uuid: string, file: string): Promise<string> => {
+  try {
+    const { data } = await http.get(`/api/client/servers/${uuid}/files/contents`, {
+      params: { file },
+      responseType: 'text'
+    });
+    return typeof data === 'string' ? data : JSON.stringify(data);
+  } catch (error) {
+    return '';
+  }
+};
+
+export const saveFileContents = async (uuid: string, file: string, content: string): Promise<void> => {
+  await http.post(`/api/client/servers/${uuid}/files/write`, { file, content });
+};
+
+export const deleteFiles = async (uuid: string, root: string, files: string[]): Promise<void> => {
+  await http.post(`/api/client/servers/${uuid}/files/delete`, { root, files });
+};
+
+export const compressFiles = async (uuid: string, root: string, files: string[]): Promise<any> => {
+  const { data } = await http.post(`/api/client/servers/${uuid}/files/compress`, { root, files });
+  return data;
+};

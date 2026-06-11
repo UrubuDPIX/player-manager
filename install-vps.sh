@@ -242,7 +242,7 @@ const panelDir = process.argv[2];
   const tag = isLink ? 'Link' : 'NavLink';
   
   const inj = '\n' + ind + '<' + tag + ' to={`${match.url}/players`}>' +
-              '\n' + ind + '    <FontAwesomeIcon icon={faUsers} /> Players' +
+              '\n' + ind + '    <FontAwesomeIcon icon={faUsers} /> Players / Worlds' +
               '\n' + ind + '</' + tag + '>';
   
   // Inject import FIRST before we inject the JSX
