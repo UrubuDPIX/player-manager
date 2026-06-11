@@ -278,7 +278,7 @@ const panelDir = process.argv[2];
   const match = c.match(/(export default\s*(?:function)?\s*\w*\s*\([^)]*\)\s*=>\s*\{)/);
   if (match) {
     const inj = [
-      "    const getEggBackground = (server) => {",
+      "    const getEggBackground = (server: any) => {",
       "        if (server.bgImage) return `url(${server.bgImage})`;",
       "        const eggStr = [",
       "            server.eggName, server.egg_name, ",
