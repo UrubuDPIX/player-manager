@@ -17,11 +17,22 @@ export default () => {
   const [worldName, setWorldName] = useState('world');
   const [loading, setLoading] = useState(false);
   const [properties, setProperties] = useState('');
+  const [propsMap, setPropsMap] = useState<Record<string, string>>({});
+  const [settingsSearch, setSettingsSearch] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     getFileContents(server.uuid, 'server.properties').then(content => {
       if (content) {
         setProperties(content);
+        const map: Record<string, string> = {};
+        content.split('\n').forEach(line => {
+          if (line.startsWith('#') || line.trim() === '') return;
+          const [k, ...v] = line.split('=');
+          if (k) map[k.trim()] = v.join('=').trim();
+        });
+        setPropsMap(map);
+
         const seedMatch = content.match(/^level-seed=(.*)$/m);
         if (seedMatch && seedMatch[1].trim() !== '') setActiveSeed(seedMatch[1].trim());
         
@@ -36,17 +47,56 @@ export default () => {
     setLoading(true);
     clearFlashes('world_manager');
     try {
-      let newProps = properties;
-      if (newProps.includes('level-seed=')) {
-        newProps = newProps.replace(/^level-seed=.*$/m, `level-seed=${newSeed}`);
-      } else {
-        newProps += `\nlevel-seed=${newSeed}\n`;
-      }
-      await saveFileContents(server.uuid, 'server.properties', newProps);
-      setActiveSeed(newSeed);
-      setProperties(newProps);
-      addFlash({ type: 'success', key: 'world_manager', message: 'Seed updated successfully. You need to wipe the world for it to take effect.' });
+      updateProperty('level-seed', newSeed);
+      await saveAllProperties(true, newSeed);
     } catch (e) {
+      clearAndAddHttpError({ error: e });
+    }
+    setLoading(false);
+  };
+
+  const updateProperty = (key: string, value: string) => {
+    setPropsMap(prev => ({...prev, [key]: value}));
+  };
+
+  const saveAllProperties = async (isSeedUpdate = false, overrideSeed = '') => {
+    setLoading(true);
+    clearFlashes('world_manager');
+    try {
+      let lines = properties.split('\n');
+      const handledKeys = new Set<string>();
+      
+      const currentMap = { ...propsMap };
+      if (isSeedUpdate && overrideSeed) currentMap['level-seed'] = overrideSeed;
+
+      lines = lines.map(line => {
+        if (line.startsWith('#') || line.trim() === '') return line;
+        const [k] = line.split('=');
+        const key = k.trim();
+        if (currentMap[key] !== undefined) {
+           handledKeys.add(key);
+           return `${key}=${currentMap[key]}`;
+        }
+        return line;
+      });
+
+      for (const [k, v] of Object.entries(currentMap)) {
+         if (!handledKeys.has(k)) {
+            lines.push(`${k}=${v}`);
+         }
+      }
+
+      const newProps = lines.join('\n');
+      await saveFileContents(server.uuid, 'server.properties', newProps);
+      setProperties(newProps);
+      
+      if (isSeedUpdate) {
+        setActiveSeed(overrideSeed);
+        addFlash({ type: 'success', key: 'world_manager', message: 'Seed updated successfully. You need to wipe the world for it to take effect.' });
+      } else {
+        addFlash({ type: 'success', key: 'world_manager', message: 'Java Server Settings saved successfully. Restart the server to apply changes.' });
+      }
+    } catch(e) {
       clearAndAddHttpError({ error: e });
     }
     setLoading(false);
@@ -204,12 +254,22 @@ export default () => {
       </div>
 
       {/* Control Panel Grid */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+      <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 mb-6">
         <h3 className="text-lg font-bold text-gray-200 mb-4 flex items-center">
           <FontAwesomeIcon icon={faCog} className="mr-2 text-gray-400" /> World Control Panel
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg p-5 flex flex-col justify-between">
+            <div>
+              <h4 className="font-bold text-gray-200 mb-1">Server Properties</h4>
+              <p className="text-sm text-gray-400 mb-4">Edit advanced Java server settings like MOTD, Max Players, etc.</p>
+            </div>
+            <Button color="primary" onClick={() => setShowSettings(!showSettings)} className="w-full justify-center">
+              <FontAwesomeIcon icon={faCog} className="mr-2" /> Manage Settings
+            </Button>
+          </div>
+
           <div className="bg-gray-900 border border-gray-700 rounded-lg p-5 flex flex-col justify-between">
             <div>
               <h4 className="font-bold text-gray-200 mb-1">Archive Export</h4>
@@ -231,6 +291,64 @@ export default () => {
           </div>
         </div>
       </div>
+
+      {/* Java Server Settings */}
+      {showSettings && (
+        <div className="bg-[#1e2532] rounded-lg border border-[#2b3544] p-6 mb-6 animate-fade-in shadow-xl">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-gray-200 flex items-center">
+              <FontAwesomeIcon icon={faCog} className="mr-2 text-gray-400" /> JAVA SERVER SETTINGS
+            </h3>
+            <Button color="green" size="small" onClick={() => saveAllProperties()}>Save Changes</Button>
+          </div>
+
+          <input 
+            type="text" 
+            placeholder="Search Java server settings..." 
+            className="w-full bg-[#151a23] border border-[#2b3544] text-gray-200 px-4 py-2 rounded mb-6 focus:outline-none focus:border-indigo-500"
+            value={settingsSearch}
+            onChange={(e) => setSettingsSearch(e.target.value)}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { label: 'MOTD', key: 'motd', type: 'text' },
+              { label: 'Server IP', key: 'server-ip', type: 'text' },
+              { label: 'Server Port', key: 'server-port', type: 'text' },
+              { label: 'Max Players', key: 'max-players', type: 'text' },
+              { label: 'Online Mode', key: 'online-mode', type: 'toggle' },
+              { label: 'Enforce Secure Profile', key: 'enforce-secure-profile', type: 'toggle' },
+              { label: 'Prevent Proxy Connections', key: 'prevent-proxy-connections', type: 'toggle' },
+              { label: 'Hide Online Players', key: 'hide-online-players', type: 'toggle' },
+              { label: 'Enable Status', key: 'enable-status', type: 'toggle' }
+            ].filter(s => s.label.toLowerCase().includes(settingsSearch.toLowerCase()) || s.key.includes(settingsSearch.toLowerCase())).map(setting => (
+              <div key={setting.key} className="bg-[#151a23] border border-[#2b3544] rounded-lg p-4">
+                <h4 className="font-bold text-gray-200 text-sm">{setting.label}</h4>
+                <p className="text-xs text-gray-500 font-mono mb-4 mt-1">{setting.key}</p>
+                
+                {setting.type === 'text' ? (
+                  <input 
+                    type="text"
+                    className="w-full bg-[#1e2532] border border-[#2b3544] text-gray-200 px-3 py-2 rounded text-sm focus:outline-none focus:border-indigo-500"
+                    value={propsMap[setting.key] || ''}
+                    onChange={(e) => updateProperty(setting.key, e.target.value)}
+                  />
+                ) : (
+                  <div className="flex items-center mt-2 cursor-pointer" onClick={() => updateProperty(setting.key, propsMap[setting.key] === 'true' ? 'false' : 'true')}>
+                    <div className={`w-10 h-5 flex items-center bg-gray-600 rounded-full p-1 duration-300 ease-in-out ${propsMap[setting.key] === 'true' ? 'bg-indigo-500' : 'bg-gray-600'}`}>
+                      <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${propsMap[setting.key] === 'true' ? 'translate-x-4' : ''}`}></div>
+                    </div>
+                    <div className="ml-3">
+                      <span className="text-xs font-bold text-gray-300 uppercase tracking-wide">{setting.label}</span>
+                      <p className="text-xs text-gray-500">{propsMap[setting.key] === 'true' ? 'Enabled' : 'Disabled'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {loading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
