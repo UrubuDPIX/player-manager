@@ -153,8 +153,10 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isH
         style={{ imageRendering: 'pixelated' }}
         onError={(e) => {
           const target = e.target as HTMLImageElement;
+          const missingTexture = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVQIW2P8z8DwnwEJMAIi3EQgJQkGA/3eGjAAAAAASUVORK5CYII=";
           if (isModded) {
-            target.style.opacity = '0';
+            target.src = missingTexture;
+            target.style.imageRendering = 'pixelated';
           } else {
             if (!target.dataset.fallback) {
                target.dataset.fallback = "1";
@@ -163,7 +165,7 @@ const InventorySlot = ({ item, slotIndex, onMoveItem, isTransparent = false, isH
                target.dataset.fallback = "2";
                target.src = `https://minecraft-api.vercel.app/images/items/${id}.png`;
             } else {
-               target.style.opacity = '0';
+               target.src = missingTexture;
             }
           }
         }}
