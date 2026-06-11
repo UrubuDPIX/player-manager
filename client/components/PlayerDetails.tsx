@@ -641,7 +641,13 @@ export default ({ player, onBack }: Props) => {
           {/* Right Side: Ender Chest & Stats & Hotbar */}
           <div className="flex flex-col items-center">
             {/* Ender Chest 3x9 */}
-            <div className="bg-[#c6c6c6] border-[4px] border-[#555555] border-t-white border-l-white p-2 mb-6 w-max" style={{ imageRendering: 'pixelated' }}>
+            <div className="relative bg-[#c6c6c6] border-[4px] border-[#555555] border-t-white border-l-white p-2 mb-6 w-max" style={{ imageRendering: 'pixelated' }}>
+              <img 
+                src="https://minecraft.wiki/images/Ender_Chest_JE2_BE2.gif?90e80&20230305011915" 
+                alt="Ender Chest" 
+                className="absolute -top-5 -left-5 w-10 h-10 object-contain drop-shadow-md z-10" 
+                style={{ imageRendering: 'pixelated' }}
+              />
               <div className="grid grid-cols-9 gap-1">
                 {Array.from({ length: 27 }).map((_, i) => (
                   <InventorySlot key={`ender-${i}`} item={nbtData?.value?.EnderItems?.value?.value?.find((item: any) => (item.Slot?.value ?? item.slot?.value) === i)} />
