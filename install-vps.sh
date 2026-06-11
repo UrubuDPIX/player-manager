@@ -275,11 +275,11 @@ const panelDir = process.argv[2];
 
   if (c.includes('const getEggBackground')) return;
 
-  const match = c.match(/(export default\s*(?:function)?\s*\\w*\\s*\\([^)]*\\)\\s*=>\\s*\\{)/);
+  const match = c.match(/(export default\\s*(?:function)?\\s*\\w*\\s*\\([^)]*\\)\\s*=>\\s*\\{)/);
   if (match) {
-    const inj = \`
+    const inj = `
     const getEggBackground = (server) => {
-        if (server.bgImage) return \\\`url(\\\${server.bgImage})\\\`;
+        if (server.bgImage) return \`url(\${server.bgImage})\`;
         
         // Extract egg/nest name from Jexactyl's extended server object
         const eggStr = [
@@ -306,7 +306,7 @@ const panelDir = process.argv[2];
         return '';
     };
     const eggBg = getEggBackground(server);
-\`;
+`;
     c = c.slice(0, match.index + match[0].length) + inj + c.slice(match.index + match[0].length);
     
     const afterInj = c.slice(match.index + match[0].length);
