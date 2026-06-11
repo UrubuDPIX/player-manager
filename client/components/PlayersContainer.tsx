@@ -38,21 +38,26 @@ export default () => {
         ]);
 
         const fileMods: Record<string, number> = {};
+        const datFiles: string[] = [];
         files.forEach((f: any) => {
           if (f.attributes?.name?.endsWith('.dat')) {
             const uuid = f.attributes.name.replace('.dat', '');
             fileMods[uuid] = new Date(f.attributes.modified_at).getTime();
+            datFiles.push(uuid);
           }
         });
 
-        const mappedPlayers: Player[] = cache.map(entry => {
-          const lastMod = fileMods[entry.uuid] || 0;
-          // Se foi modificado nos últimos 25s (em relação ao horário do servidor VPS), tá online
-          const isOnline = (serverTime - lastMod) < 25000;
+        const cacheMap = new Map<string, string>();
+        cache.forEach(entry => cacheMap.set(entry.uuid, entry.name));
+
+        const mappedPlayers: Player[] = datFiles.map(uuid => {
+          const lastMod = fileMods[uuid] || 0;
+          // Math.abs to prevent time drift issues if client time is behind server time
+          const isOnline = Math.abs(serverTime - lastMod) < 25000;
           
           return {
-            uuid: entry.uuid,
-            name: entry.name,
+            uuid: uuid,
+            name: cacheMap.get(uuid) || uuid,
             health: 20.0,
             food: 20.0,
             isOp: false,

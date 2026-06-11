@@ -318,7 +318,7 @@ export default ({ player, onBack }: Props) => {
       const playerFile = files.find((f: any) => f.attributes.name === `${player.uuid}.dat`);
       if (playerFile) {
         const modTime = new Date(playerFile.attributes.modified_at).getTime();
-        setIsOnline((serverTime - modTime) < 25000);
+        setIsOnline(Math.abs(serverTime - modTime) < 25000);
         
         const spZone = 'America/Sao_Paulo';
         const formatOptions: Intl.DateTimeFormatOptions = { 
