@@ -82,6 +82,42 @@ const JAVA_SETTINGS = [
   { label: 'Management Allowed Origins', key: 'management-server-allowed-origins', type: 'text' },
 ];
 
+const GAME_RULES = [
+  { label: 'Announce Advancements', key: 'minecraft:announceAdvancements', type: 'toggle' },
+  { label: 'Command Block Output', key: 'minecraft:commandBlockOutput', type: 'toggle' },
+  { label: 'Disable Elytra Movement Check', key: 'minecraft:disableElytraMovementCheck', type: 'toggle' },
+  { label: 'Disable Raids', key: 'minecraft:disableRaids', type: 'toggle' },
+  { label: 'Do Daylight Cycle', key: 'minecraft:doDaylightCycle', type: 'toggle' },
+  { label: 'Do Entity Drops', key: 'minecraft:doEntityDrops', type: 'toggle' },
+  { label: 'Do Fire Tick', key: 'minecraft:doFireTick', type: 'toggle' },
+  { label: 'Do Insomnia', key: 'minecraft:doInsomnia', type: 'toggle' },
+  { label: 'Do Immediate Respawn', key: 'minecraft:doImmediateRespawn', type: 'toggle' },
+  { label: 'Do Limited Crafting', key: 'minecraft:doLimitedCrafting', type: 'toggle' },
+  { label: 'Do Mob Loot', key: 'minecraft:doMobLoot', type: 'toggle' },
+  { label: 'Do Mob Spawning', key: 'minecraft:doMobSpawning', type: 'toggle' },
+  { label: 'Do Patrol Spawning', key: 'minecraft:doPatrolSpawning', type: 'toggle' },
+  { label: 'Do Tile Drops', key: 'minecraft:doTileDrops', type: 'toggle' },
+  { label: 'Do Trader Spawning', key: 'minecraft:doTraderSpawning', type: 'toggle' },
+  { label: 'Do Weather Cycle', key: 'minecraft:doWeatherCycle', type: 'toggle' },
+  { label: 'Drowning Damage', key: 'minecraft:drowningDamage', type: 'toggle' },
+  { label: 'Fall Damage', key: 'minecraft:fallDamage', type: 'toggle' },
+  { label: 'Fire Damage', key: 'minecraft:fireDamage', type: 'toggle' },
+  { label: 'Forgive Dead Players', key: 'minecraft:forgiveDeadPlayers', type: 'toggle' },
+  { label: 'Keep Inventory', key: 'minecraft:keepInventory', type: 'toggle' },
+  { label: 'Log Admin Commands', key: 'minecraft:logAdminCommands', type: 'toggle' },
+  { label: 'Max Command Chain Length', key: 'minecraft:maxCommandChainLength', type: 'text' },
+  { label: 'Max Entity Cramming', key: 'minecraft:maxEntityCramming', type: 'text' },
+  { label: 'Mob Griefing', key: 'minecraft:mobGriefing', type: 'toggle' },
+  { label: 'Natural Regeneration', key: 'minecraft:naturalRegeneration', type: 'toggle' },
+  { label: 'Random Tick Speed', key: 'minecraft:randomTickSpeed', type: 'text' },
+  { label: 'Reduced Debug Info', key: 'minecraft:reducedDebugInfo', type: 'toggle' },
+  { label: 'Send Command Feedback', key: 'minecraft:sendCommandFeedback', type: 'toggle' },
+  { label: 'Show Death Messages', key: 'minecraft:showDeathMessages', type: 'toggle' },
+  { label: 'Spawn Radius', key: 'minecraft:spawnRadius', type: 'text' },
+  { label: 'Spectators Generate Chunks', key: 'minecraft:spectatorsGenerateChunks', type: 'toggle' },
+  { label: 'Universal Anger', key: 'minecraft:universalAnger', type: 'toggle' },
+];
+
 export default () => {
   const server = ServerContext.useStoreState(state => state.server.data!);
   const status = ServerContext.useStoreState(state => state.status.value);
@@ -93,7 +129,9 @@ export default () => {
   const [loading, setLoading] = useState(false);
   const [properties, setProperties] = useState('');
   const [propsMap, setPropsMap] = useState<Record<string, string>>({});
+  const [gameruleMap, setGameruleMap] = useState<Record<string, string>>({});
   const [settingsSearch, setSettingsSearch] = useState('');
+  const [gameruleSearch, setGameruleSearch] = useState('');
   const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
@@ -132,6 +170,10 @@ export default () => {
 
   const updateProperty = (key: string, value: string) => {
     setPropsMap(prev => ({...prev, [key]: value}));
+  };
+
+  const updateGamerule = (key: string, value: string) => {
+    setGameruleMap(prev => ({...prev, [key]: value}));
   };
 
   const saveAllProperties = async (isSeedUpdate = false, overrideSeed = '') => {
@@ -291,25 +333,73 @@ export default () => {
           </div>
 
           <div className="mt-8 border-t border-[#2b3544] pt-6">
-            <div className="bg-red-500/10 border-l-4 border-red-500 text-red-500 p-4 rounded-r-lg mb-2 text-sm font-bold">
-              Failed to save gamerules.
-            </div>
-            <div className="bg-red-500/10 border-l-4 border-red-500 text-red-500 p-4 rounded-r-lg mb-6 text-sm font-bold">
-              Failed to save gamerules.
-            </div>
-
             <div className="flex items-center mb-6 pb-4">
               <FontAwesomeIcon icon={faCog} className="mr-2 text-gray-400" />
-              <h3 className="text-lg font-bold text-gray-200 uppercase">Active Game Rules</h3>
+              <h3 className="text-lg font-bold text-gray-200 uppercase">ACTIVE GAME RULES</h3>
             </div>
-            <input 
-              type="text" 
-              placeholder="Search gamerules..." 
-              className="w-full bg-[#151a23] border border-[#2b3544] text-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:border-indigo-500 shadow-inner mb-6"
-              disabled
-            />
-            <div className="text-center p-10 bg-[#151a23] border border-[#2b3544] rounded-xl text-gray-500">
-              Gamerules management requires the server to be online or NBT write permissions.
+            
+            <div className="relative mb-6">
+              <input 
+                type="text" 
+                placeholder="Search gamerules..." 
+                className="w-full bg-[#151a23] border border-[#2b3544] text-gray-200 px-10 py-3 rounded-lg focus:outline-none focus:border-indigo-500 shadow-inner"
+                value={gameruleSearch}
+                onChange={(e) => setGameruleSearch(e.target.value)}
+              />
+              <FontAwesomeIcon icon={faCog} className="absolute left-4 top-3.5 text-gray-500" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {GAME_RULES.filter(s => s.label.toLowerCase().includes(gameruleSearch.toLowerCase()) || s.key.includes(gameruleSearch.toLowerCase())).map(setting => (
+                <div key={setting.key} className="bg-[#151a23] border border-[#2b3544] rounded-xl p-5 hover:border-indigo-500/50 transition-colors">
+                  <h4 className="font-bold text-gray-100 text-sm">{setting.label}</h4>
+                  <p className="text-xs text-gray-500 font-mono mb-4 mt-1">{setting.key}</p>
+                  
+                  {setting.type === 'text' ? (
+                    <input 
+                      type="text"
+                      className="w-full bg-[#1e2532] border border-[#2b3544] text-gray-200 px-4 py-2 rounded-lg text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow"
+                      value={gameruleMap[setting.key] || ''}
+                      onChange={(e) => updateGamerule(setting.key, e.target.value)}
+                      placeholder="Default"
+                    />
+                  ) : (
+                    <div className="flex items-center mt-2 cursor-pointer" onClick={() => updateGamerule(setting.key, gameruleMap[setting.key] === 'true' ? 'false' : 'true')}>
+                      <div className={`w-12 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out ${gameruleMap[setting.key] === 'true' ? 'bg-indigo-500' : 'bg-[#2b3544]'}`}>
+                        <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${gameruleMap[setting.key] === 'true' ? 'translate-x-6' : ''}`}></div>
+                      </div>
+                      <div className="ml-4 flex flex-col">
+                        <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">{setting.label}</span>
+                        <span className="text-xs text-gray-500">{gameruleMap[setting.key] === 'true' ? 'Active' : 'Disabled'}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8 border-t border-[#2b3544] pt-6">
+            <div className="flex items-center mb-6 pb-4">
+              <FontAwesomeIcon icon={faCog} className="mr-2 text-gray-400" />
+              <h3 className="text-lg font-bold text-gray-200 uppercase">WORLD DATAPACKS</h3>
+            </div>
+            
+            <div className="bg-[#151a23] border border-[#2b3544] rounded-lg p-4">
+              <div className="flex gap-4 mb-4">
+                <input 
+                  type="text" 
+                  placeholder="Search datapacks..." 
+                  className="flex-1 bg-[#1e2532] border border-[#2b3544] text-gray-200 px-4 py-2 rounded focus:outline-none focus:border-indigo-500 shadow-inner"
+                  disabled
+                />
+                <Button color="grey" disabled>
+                  <FontAwesomeIcon icon={faSync} className="mr-2" /> Refresh
+                </Button>
+              </div>
+              <div className="text-center p-8 border border-[#2b3544] rounded text-gray-500">
+                No datapacks found in the world directory.
+              </div>
             </div>
           </div>
         </div>
