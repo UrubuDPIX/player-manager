@@ -273,7 +273,13 @@ const panelDir = process.argv[2];
   if (!fs.existsSync(srPath)) return;
   let c = fs.readFileSync(srPath, 'utf8');
 
-  if (c.includes('const getEggBackground')) return;
+  if (c.includes('const getEggBackground')) {
+      // Fix implicit any if it's the old injection
+      c = c.replace('const getEggBackground = (server) => {', 'const getEggBackground = (server: any) => {');
+      fs.writeFileSync(srPath, c);
+      console.log('✓ Tipagem any do Background Automático corrigida no ServerRow.tsx!');
+      return;
+  }
 
   const match = c.match(/(export default\s*(?:function)?\s*\w*\s*\([^)]*\)\s*=>\s*\{)/);
   if (match) {
