@@ -328,17 +328,20 @@ const panelDir = process.argv[2];
     if (!fs.existsSync(cssPath)) return;
     
     let css = fs.readFileSync(cssPath, 'utf8');
-    if (css.includes('EUPHORIA THEME OVERRIDES')) {
-        console.log('✓ Tema Euphoria já estava aplicado no tailwind.css!');
-        return;
-    }
+    
+    // Remove o tema antigo se já existir para podermos injetar a nova versão corrigida
+    css = css.replace(/\/\* === EUPHORIA THEME OVERRIDES === \*\/[\s\S]*?\/\* === END EUPHORIA === \*\//, '');
 
     const themeCss = `
-/* ==========================================================================
-   EUPHORIA THEME OVERRIDES (Injetado pelo Player Manager)
-   ========================================================================== */
+/* === EUPHORIA THEME OVERRIDES === */
 
-/* Remove fundos sólidos do corpo da página para dar espaço ao Glassmorphism */
+/* Truque de Mestre: Reduz o tamanho base da fonte. 
+   Como o Tailwind usa 'rem' para TUDO (paddings, margins, alturas, larguras), 
+   isso encolhe o painel inteiro proporcionalmente, deixando ele identico ao Euphoria! */
+html {
+    font-size: 14px !important;
+}
+
 body, #app, #app > div, #app > div > div {
     background: transparent !important;
 }
@@ -352,7 +355,7 @@ body::before {
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    filter: blur(4px) brightness(0.65);
+    filter: blur(5px) brightness(0.5);
     z-index: -1;
 }
 
@@ -364,18 +367,23 @@ body::before {
     border-color: rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Deixa os botões de ações mais suaves */
+/* Correção para os botões do final da Sidebar (Admin, Sair) não sobreporem */
+div.flex.flex-col.justify-between {
+    min-height: 100vh;
+    padding-bottom: 2rem !important;
+}
+
 button {
     backdrop-filter: blur(4px) !important;
 }
 
-/* Remove a sombra pesada nativa do Pterodactyl */
 .shadow-md {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
 }
+/* === END EUPHORIA === */
 `;
     fs.writeFileSync(cssPath, css + '\\n' + themeCss);
-    console.log('✓ Tema Euphoria (Glassmorphism + Cards Menores) injetado com sucesso no CSS Global!');
+    console.log('✓ Tema Euphoria (Proporções Corrigidas) injetado com sucesso no CSS Global!');
 })();
 JSEOF
     } > "$JS"
