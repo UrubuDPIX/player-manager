@@ -277,7 +277,7 @@ const panelDir = process.argv[2];
       // Remove old injection entirely so we can inject the new one with updated URLs
       c = c.replace(/\s*const getEggBackground = \(server(: any)?\) => \{[\s\S]*?const eggBg = getEggBackground\(server\);/, '');
       // Clean up ALL previously injected styles to prevent JSX duplicate attribute error
-      c = c.replace(/style=\{eggBg[\s\S]*?className=/g, 'className=');
+      c = c.replace(/(data-euphoria="card"\s*)?style=\{eggBg[\s\S]*?className=/g, 'className=');
   }
 
   const match = c.match(/(export default\s*(?:function)?\s*\w*\s*\([^)]*\)\s*=>\s*\{)/);
@@ -316,7 +316,7 @@ const panelDir = process.argv[2];
     c = c.slice(0, match.index + match[0].length) + '\n' + inj + '\n' + c.slice(match.index + match[0].length);
     
     const afterInj = c.slice(match.index + match[0].length);
-    c = c.slice(0, match.index + match[0].length) + afterInj.replace(/className=/, 'style={eggBg ? { backgroundImage: eggBg, backgroundSize: "cover", backgroundPosition: "center", backgroundBlendMode: "overlay", backgroundColor: "rgba(15, 20, 25, 0.82)", padding: "1rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.08)" } : { padding: "1rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.08)", backgroundColor: "rgba(15, 20, 25, 0.6)", backdropFilter: "blur(12px)" }} className=');
+    c = c.slice(0, match.index + match[0].length) + afterInj.replace(/className=/, 'data-euphoria="card" style={eggBg ? { backgroundImage: eggBg, backgroundSize: "cover", backgroundPosition: "center", backgroundBlendMode: "overlay", backgroundColor: "rgba(15, 20, 25, 0.82)", padding: "1rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.08)" } : { padding: "1rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.08)", backgroundColor: "rgba(15, 20, 25, 0.6)", backdropFilter: "blur(12px)" }} className=');
 
     fs.writeFileSync(srPath, c);
     console.log('✓ Sistema de Background Automático por Egg injetado no ServerRow.tsx!');
@@ -381,8 +381,7 @@ body::before {
 }
 
 /* CORREÇÃO DO TAMANHO DOS CARDS (Super Compactos) */
-/* Em vez de usar classes que o React ofusca, pegamos todos os links de servidores! */
-a[href^="/server/"] {
+a[data-euphoria="card"] {
     padding: 0.5rem 1.25rem !important; /* Reduz muito as bordas internas */
     min-height: 85px !important;
     height: auto !important;
@@ -393,12 +392,12 @@ a[href^="/server/"] {
 }
 
 /* Reduz os espaçamentos gigantes padrões do Pterodactyl dentro dos cards */
-a[href^="/server/"] > div {
+a[data-euphoria="card"] > div {
     margin-top: 0.15rem !important;
     margin-bottom: 0 !important;
 }
 
-a[href^="/server/"] p {
+a[data-euphoria="card"] p {
     line-height: 1.2 !important;
     margin: 0 !important;
 }
