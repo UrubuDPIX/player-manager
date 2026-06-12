@@ -138,7 +138,7 @@ type Timer = ReturnType<typeof setInterval>;
 
 export default ({ server, className }: { server: Server; className?: string }) => {
     const getEggBackground = (server: any) => {
-        if (server.bgImage) return \`url(\${server.bgImage})\`;
+        if (server.bgImage) return `url(${server.bgImage})`;
         const eggStr = [
             server.name, server.description,
             server.eggName, server.egg_name, 
@@ -190,7 +190,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
     }, [isSuspended]);
 
     const sendPowerCommand = (command: 'start' | 'restart') => {
-        http.post(\`/api/client/servers/\${server.uuid}/power\`, { signal: command }).catch(console.error);
+        http.post(`/api/client/servers/${server.uuid}/power`, { signal: command }).catch(console.error);
     };
 
     return (
@@ -215,7 +215,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                         <div css={tw`flex items-center gap-2 px-3.5 py-2 bg-[#1a201c] rounded-full border border-[#2c3530] w-fit`}>
                             <Icon.Globe size={13} color="#2ecc71" />
                             <span css={tw`text-[10px] sm:text-[11px] font-bold text-gray-300 tracking-wide truncate max-w-[150px] sm:max-w-[200px]`}>
-                                {server.allocations.filter(a => a.isDefault).map(a => \`\${a.alias || ip(a.ip)}:\${a.port}\`)[0]}
+                                {server.allocations.filter(a => a.isDefault).map(a => `${a.alias || ip(a.ip)}:${a.port}`)[0]}
                             </span>
                         </div>
                     </div>
@@ -234,7 +234,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                         <ProgressBar value={stats?.cpuUsagePercent || 0} max={server.limits.cpu || 200} />
                         <div css={tw`flex justify-between text-[11px] text-gray-400 font-bold mt-2`}>
                             <span>0%</span>
-                            <span>{server.limits.cpu > 0 ? \`\${server.limits.cpu}%\` : '∞'}</span>
+                            <span>{server.limits.cpu > 0 ? `${server.limits.cpu}%` : '∞'}</span>
                         </div>
                     </div>
 
@@ -249,7 +249,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                         <ProgressBar value={stats?.memoryUsageInBytes || 0} max={server.limits.memory * 1024 * 1024 || 4000000000} />
                         <div css={tw`flex justify-between text-[11px] text-gray-400 font-bold mt-2`}>
                             <span>0 GB</span>
-                            <span>{server.limits.memory > 0 ? \`\${(server.limits.memory / 1024).toFixed(2)} GB\` : '∞'}</span>
+                            <span>{server.limits.memory > 0 ? `${(server.limits.memory / 1024).toFixed(2)} GB` : '∞'}</span>
                         </div>
                     </div>
                 </StatsColumn>
@@ -267,7 +267,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                         <ProgressBar value={stats?.diskUsageInBytes || 0} max={server.limits.disk * 1024 * 1024 || 10000000000} />
                         <div css={tw`flex justify-between text-[11px] text-gray-400 font-bold mt-2`}>
                             <span>0 GB</span>
-                            <span>{server.limits.disk > 0 ? \`\${(server.limits.disk / 1024).toFixed(2)} GB\` : '∞'}</span>
+                            <span>{server.limits.disk > 0 ? `${(server.limits.disk / 1024).toFixed(2)} GB` : '∞'}</span>
                         </div>
                     </div>
 
@@ -281,7 +281,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                         </ActionButton>
                     </div>
 
-                    <ManageButton to={\`/server/\${server.id}\`}>
+                    <ManageButton to={`/server/${server.id}`}>
                         Manage Server
                     </ManageButton>
                 </ActionsColumn>
