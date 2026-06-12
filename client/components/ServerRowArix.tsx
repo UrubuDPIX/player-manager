@@ -3,59 +3,68 @@ import tw, { styled } from 'twin.macro';
 import * as Icon from 'react-feather';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
-import Spinner from '@/components/elements/Spinner';
 import { bytesToString, ip } from '@/lib/formatters';
 import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
 import http from '@/api/http';
 import LayoutManager from './LayoutManager';
 
 const ArixCard = styled.div<{ $bg: string }>`
-    /* ROW LAYOUT (Padrão) */
-    ${tw`flex flex-row items-center h-[160px] min-h-[160px] rounded-lg w-full max-w-[1200px] p-4 relative overflow-hidden`}
-    background-color: var(--hyper-sidebar, #161a18);
-    border: 1px solid var(--hyper-accent, #1e2822);
-    backdrop-filter: blur(16px);
+    ${tw`relative w-full rounded-[20px] overflow-hidden mb-6`}
     transition: all 0.3s ease;
-    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.05);
+    background: #161a18;
+
+    /* ROW LAYOUT */
+    body[data-arix-layout="row"] & {
+        ${tw`flex flex-row items-center h-[160px] min-h-[160px] p-4`}
+        background: rgba(22, 26, 24, 0.8);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* GRID LAYOUT */
+    body[data-arix-layout="grid"] & {
+        ${tw`flex flex-col p-5`}
+        min-height: 250px;
+        background: rgba(22, 26, 24, 0.9);
+        border-radius: 16px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        
+        /* O efeito de borda animada do Hyper */
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            padding: 2px; /* border-width */
+            background-image: radial-gradient(circle at 50% 50%, rgba(225, 29, 72, 0.5), transparent 60%);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+    }
 
     /* COMPACT LAYOUT */
     body[data-arix-layout="compact"] & {
-        ${tw`flex flex-col rounded-lg shadow-lg transition-opacity duration-300 opacity-100`}
-        background-color: var(--hyper-primary-30, rgba(15,17,16,0.6));
-        border: 1px solid var(--hyper-accent, #1e2822);
+        ${tw`flex flex-col justify-end p-4`}
         min-height: 280px;
-        position: relative;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
         ${props => props.$bg && `
-            background-image: linear-gradient(to top, rgba(15,17,16,1) 0%, rgba(15,17,16,0.3) 100%), ${props.$bg};
+            background-image: linear-gradient(to top, rgba(15,17,16,0.95) 0%, rgba(15,17,16,0.4) 100%), ${props.$bg};
             background-size: cover;
             background-position: center;
         `}
-    }
-
-    /* GRID LAYOUT (Borda animada que o usuario pediu) */
-    body[data-arix-layout="grid"] & {
-        ${tw`flex flex-col relative`}
-        min-height: 280px;
-        --border-width: 2px;
-        --duration: 14s;
-        background-image: radial-gradient(transparent, transparent, var(--hyper-primary, #e11d48), transparent, transparent);
-        background-size: 300% 300%;
-        mask: linear-gradient(rgb(255, 255, 255) 0px, rgb(255, 255, 255) 0px) content-box exclude, linear-gradient(rgb(255, 255, 255) 0px, rgb(255, 255, 255) 0px);
-        padding: var(--border-width);
-        border: none;
-        backdrop-filter: none;
     }
 `;
 
 const CardInner = styled.div`
     display: flex;
-    flex-direction: column;
-    gap: 2rem;
     width: 100%;
-
-    @container arixcard (min-width: 800px) {
-        flex-direction: row;
-    }
+    z-index: 2;
 
     body[data-arix-layout="row"] & {
         flex-direction: row;
@@ -70,80 +79,46 @@ const CardInner = styled.div`
     body[data-arix-layout="compact"] & {
         flex-direction: column;
         gap: 1rem;
-        background: rgba(15,17,16,0.6);
-        border-radius: 12px;
-        padding: 1.5rem;
     }
 `;
 
 const InfoColumn = styled.div`
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 1.25rem;
-    overflow: hidden;
-
-    @container arixcard (min-width: 800px) {
-        width: 35%;
-        align-items: flex-start;
-    }
 
     body[data-arix-layout="row"] & {
+        flex-direction: row;
+        align-items: center;
+        gap: 1.25rem;
         width: 35%;
-        align-items: flex-start;
     }
     body[data-arix-layout="grid"] & {
         flex-direction: column;
         text-align: center;
         width: 100%;
-        position: relative;
-        .server-tags { display: none; }
-        .server-name {
-            position: absolute;
-            top: -120px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 24px;
-            z-index: 10;
-        }
-        .ip-pill { display: none; }
+        align-items: center;
+        gap: 0.5rem;
     }
     body[data-arix-layout="compact"] & {
-        flex-direction: row;
-        width: 100%;
-        gap: 1rem;
-        justify-content: center;
+        flex-direction: column;
         text-align: center;
-        .info-texts { align-items: center; }
-        .server-tags { display: none; }
-        .server-name {
-            font-size: 24px;
-            z-index: 10;
-        }
-        .ip-pill { display: none; }
+        width: 100%;
+        align-items: center;
+        gap: 0.5rem;
     }
 `;
 
 const StatsColumn = styled.div`
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1.5rem;
-
-    @container arixcard (min-width: 800px) {
-        width: 30%;
-    }
 
     body[data-arix-layout="row"] & {
-        width: 30%;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-    body[data-arix-layout="grid"] & {
-        width: 45%;
-        display: flex;
         flex-direction: column;
         gap: 1rem;
+        width: 30%;
+    }
+    body[data-arix-layout="grid"] & {
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
     }
     body[data-arix-layout="compact"] & {
         display: none;
@@ -152,75 +127,71 @@ const StatsColumn = styled.div`
 
 const ActionsColumn = styled.div`
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1rem;
 
-    @container arixcard (min-width: 800px) {
+    body[data-arix-layout="row"] & {
+        flex-direction: column;
+        gap: 1rem;
         width: 35%;
+        justify-content: center;
+    }
+    body[data-arix-layout="grid"] & {
+        display: none;
+    }
+    body[data-arix-layout="compact"] & {
+        display: none;
     }
 `;
 
 const ServerImage = styled.div<{ $bg: string }>`
-    ${tw`w-24 h-24 sm:w-32 sm:h-32 rounded-2xl flex-shrink-0 bg-gray-800 bg-center bg-cover bg-no-repeat relative`}
+    ${tw`flex-shrink-0 bg-gray-800 bg-center bg-cover bg-no-repeat relative`}
     ${({ $bg }) => `background-image: ${$bg};`}
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
     
-    &::after {
-        content: '';
-        ${tw`absolute inset-0 rounded-2xl`}
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+    body[data-arix-layout="row"] & {
+        width: 100px;
+        height: 100px;
+        border-radius: 16px;
+    }
+    body[data-arix-layout="grid"] & {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin-bottom: 0.5rem;
+    }
+    body[data-arix-layout="compact"] & {
+        display: none; /* Em compact a imagem já está no fundo do card inteiro */
     }
 `;
 
 const ProgressBar = ({ value, max, color = '#2ecc71' }: { value: number, max: number, color?: string }) => {
     const percent = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0;
     return (
-        <div css={tw`w-full bg-[#1e2521] rounded-full h-1.5 mt-2 overflow-hidden`}>
+        <div css={tw`w-full bg-[#1e2521] rounded-full h-1.5 mt-1 overflow-hidden`}>
             <div style={{ width: `${percent}%`, backgroundColor: color }} css={tw`h-full rounded-full shadow-[0_0_10px_rgba(46,204,113,0.8)]`} />
         </div>
     );
 };
 
-const ActionButton = styled.button<{ $type?: 'start' | 'restart' | 'stop' }>`
-    ${tw`flex items-center justify-center gap-2 px-5 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all`}
-    background: transparent;
-    border: 1px solid ${({ $type }) => $type === 'stop' ? '#e74c3c' : '#2ecc71'};
-    color: ${({ $type }) => $type === 'stop' ? '#e74c3c' : '#2ecc71'};
-    flex: 1;
-
-    &:hover {
-        background: ${({ $type }) => $type === 'stop' ? 'rgba(231, 76, 60, 0.15)' : 'rgba(46, 204, 113, 0.15)'};
-        transform: translateY(-1px);
-    }
-    &:active {
-        transform: translateY(1px);
-    }
-`;
-
 const ManageButton = styled(Link)`
-    ${tw`w-full flex items-center justify-center py-2.5 rounded-xl text-sm font-bold text-[#0d120f] transition-all mt-2`}
+    ${tw`w-full flex items-center justify-center py-2.5 rounded-xl text-sm font-bold text-[#0d120f] transition-all`}
     background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
     box-shadow: 0 4px 15px rgba(46, 204, 113, 0.25);
 
     &:hover {
         opacity: 0.9;
-        box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
         transform: translateY(-1px);
     }
 `;
 
 const StatusPill = styled.div<{ $status: ServerPowerState | undefined }>`
-    ${tw`absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase bg-[#1a201c] border border-[#2c3530] z-10`}
+    ${tw`absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-[#1a201c] border border-[#2c3530] z-10`}
     color: ${({ $status }) => 
         !$status || $status === 'offline' ? '#e74c3c' : 
         $status === 'running' ? '#2ecc71' : '#f1c40f'
     };
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 
     &::before {
         content: '';
-        ${tw`w-2 h-2 rounded-full`}
+        ${tw`w-1.5 h-1.5 rounded-full`}
         background-color: currentColor;
         box-shadow: 0 0 8px currentColor;
         ${({ $status }) => $status === 'running' && tw`animate-pulse`}
@@ -228,45 +199,31 @@ const StatusPill = styled.div<{ $status: ServerPowerState | undefined }>`
 `;
 
 type Timer = ReturnType<typeof setInterval>;
-
 let globalIsFirstCard = true;
 
 export default ({ server, className }: { server: Server; className?: string }) => {
     const isFirstCardRef = useRef(globalIsFirstCard);
     useEffect(() => {
         globalIsFirstCard = false;
-        return () => {
-            // Se desmontar tudo (ex: sai da pagina), reseta para o proximo mount
-            globalIsFirstCard = true;
-        };
+        return () => { globalIsFirstCard = true; };
     }, []);
 
     const getEggBackground = (server: any) => {
         if (server.bgImage) return `url(${server.bgImage})`;
         const eggStr = [
-            server.name, server.description,
-            server.eggName, server.egg_name, 
-            server.egg?.name, server.egg,
-            server.nestName, server.nest_name, 
-            server.nest?.name, server.nest,
-            server.dockerImage, server.invocation
+            server.name, server.description, server.eggName, server.egg?.name
         ].filter(Boolean).join(' ').toLowerCase();
-        if (eggStr.includes('minecraft') || eggStr.includes('java') || eggStr.includes('modpack') || eggStr.includes('forge') || eggStr.includes('paper') || eggStr.includes('spigot') || eggStr.includes('moon')) {
+        
+        if (eggStr.includes('minecraft') || eggStr.includes('java')) {
             return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/user-minecraft.png)';
         }
-        if (eggStr.includes('fivem') || eggStr.includes('gta') || eggStr.includes('redm')) {
+        if (eggStr.includes('fivem') || eggStr.includes('gta')) {
             return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/user-fivem.jpg)';
         }
-        if (eggStr.includes('node') || eggStr.includes('js')) {
-            return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/user-nodejs.jpg)';
-        }
-        if (eggStr.includes('python') || eggStr.includes('bot') || eggStr.includes('discord')) {
+        if (eggStr.includes('bot') || eggStr.includes('python') || eggStr.includes('node')) {
             return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/user-python.jpg)';
         }
-        if (eggStr.includes('lavalink') || eggStr.includes('music')) {
-            return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/bg-music.png)';
-        }
-        return '';
+        return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/user-minecraft.png)';
     };
     const eggBg = getEggBackground(server);
 
@@ -274,10 +231,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
     const [isSuspended, setIsSuspended] = useState(server.status === 'suspended');
     const [stats, setStats] = useState<ServerStats | null>(null);
 
-    const getStats = () =>
-        getServerResourceUsage(server.uuid)
-            .then((data) => setStats(data))
-            .catch((error) => console.error(error));
+    const getStats = () => getServerResourceUsage(server.uuid).then(setStats).catch(console.error);
 
     useEffect(() => {
         setIsSuspended(stats?.isSuspended || server.status === 'suspended');
@@ -285,17 +239,9 @@ export default ({ server, className }: { server: Server; className?: string }) =
 
     useEffect(() => {
         if (isSuspended) return;
-        getStats().then(() => {
-            interval.current = setInterval(() => getStats(), 30000);
-        });
-        return () => {
-            interval.current && clearInterval(interval.current);
-        };
+        getStats().then(() => { interval.current = setInterval(() => getStats(), 30000); });
+        return () => { interval.current && clearInterval(interval.current); };
     }, [isSuspended]);
-
-    const sendPowerCommand = (command: 'start' | 'restart') => {
-        http.post(`/api/client/servers/${server.uuid}/power`, { signal: command }).catch(console.error);
-    };
 
     return (
         <ArixCard className={`server-row ${className || ''}`} $bg={eggBg}>
@@ -305,92 +251,34 @@ export default ({ server, className }: { server: Server; className?: string }) =
             </StatusPill>
             
             <CardInner>
-                
-                {/* 1. EGG INFO COLUMN */}
                 <InfoColumn>
                     <ServerImage $bg={eggBg} />
-                    <div css={tw`flex flex-col justify-center h-full py-1 overflow-hidden w-full`} className="info-texts">
-                        <h3 className="server-name" css={tw`text-lg sm:text-2xl font-black text-white mb-1 tracking-tight truncate`}>{server.name}</h3>
-                        <p css={tw`text-xs font-semibold text-gray-400 mb-2 sm:mb-3 truncate`}>{(server as any).eggName || (server as any).egg?.name || 'Server'}</p>
-                        <div css={tw`flex gap-2 mb-2 sm:mb-3`}>
-                            <span css={tw`px-2.5 py-1 rounded bg-[#1e2521] text-[#2ecc71] text-[10px] font-black border border-[#2c3530] uppercase tracking-wider`}>
-                                {((server as any).eggName || (server as any).egg?.name || 'SERVER').split(' ')[0]}
-                            </span>
-                        </div>
-                        <div className="ip-pill" css={[tw`flex items-center gap-2 px-3.5 py-2 bg-[#1a201c] rounded-full border border-[#2c3530]`, { width: 'fit-content' }]}>
-                            <Icon.Globe size={13} color="#2ecc71" />
-                            <span css={tw`text-[10px] sm:text-[11px] font-bold text-gray-300 tracking-wide truncate max-w-[150px] sm:max-w-[200px]`}>
-                                {server.allocations.filter(a => a.isDefault).map(a => `${a.alias || ip(a.ip)}:${a.port}`)[0]}
-                            </span>
-                        </div>
+                    <div css={tw`flex flex-col justify-center`}>
+                        <h3 css={tw`text-lg font-black text-white mb-1 truncate max-w-[200px]`}>{server.name}</h3>
+                        <p css={tw`text-xs font-semibold text-gray-400 truncate`}>{(server as any).eggName || (server as any).egg?.name || 'Server'}</p>
                     </div>
                 </InfoColumn>
 
-                {/* 2. CPU & RAM COLUMN */}
                 <StatsColumn>
-                    {/* CPU */}
                     <div>
-                        <div css={tw`flex justify-between items-center mb-1`}>
-                            <div css={tw`flex items-center gap-2 text-[13px] font-bold text-gray-200`}>
-                                <Icon.Cpu size={15} color="#2ecc71" />
-                                Cpu : {stats?.cpuUsagePercent?.toFixed(2) || '0.00'}%
-                            </div>
+                        <div css={tw`flex items-center gap-2 text-xs font-bold text-gray-200 mb-1`}>
+                            <Icon.Cpu size={14} color="#2ecc71" /> CPU: {stats?.cpuUsagePercent?.toFixed(2) || '0.00'}%
                         </div>
                         <ProgressBar value={stats?.cpuUsagePercent || 0} max={server.limits.cpu || 200} />
-                        <div css={tw`flex justify-between text-[11px] text-gray-400 font-bold mt-2`}>
-                            <span>0%</span>
-                            <span>{server.limits.cpu > 0 ? `${server.limits.cpu}%` : '∞'}</span>
-                        </div>
                     </div>
-
-                    {/* RAM */}
                     <div>
-                        <div css={tw`flex justify-between items-center mb-1`}>
-                            <div css={tw`flex items-center gap-2 text-[13px] font-bold text-gray-200`}>
-                                <Icon.Server size={15} color="#2ecc71" />
-                                Ram : {bytesToString(stats?.memoryUsageInBytes || 0)}
-                            </div>
+                        <div css={tw`flex items-center gap-2 text-xs font-bold text-gray-200 mb-1`}>
+                            <Icon.Server size={14} color="#2ecc71" /> RAM: {bytesToString(stats?.memoryUsageInBytes || 0)}
                         </div>
                         <ProgressBar value={stats?.memoryUsageInBytes || 0} max={server.limits.memory * 1024 * 1024 || 4000000000} />
-                        <div css={tw`flex justify-between text-[11px] text-gray-400 font-bold mt-2`}>
-                            <span>0 GB</span>
-                            <span>{server.limits.memory > 0 ? `${(server.limits.memory / 1024).toFixed(2)} GB` : '∞'}</span>
-                        </div>
                     </div>
                 </StatsColumn>
 
-                {/* 3. DISK & ACTIONS COLUMN */}
                 <ActionsColumn>
-                    {/* DISK */}
-                    <div css={tw`mb-1`} className="disk-stats">
-                        <div css={tw`flex justify-between items-center mb-1`}>
-                            <div css={tw`flex items-center gap-2 text-[13px] font-bold text-gray-200`}>
-                                <Icon.HardDrive size={15} color="#2ecc71" />
-                                DISK : {bytesToString(stats?.diskUsageInBytes || 0)}
-                            </div>
-                        </div>
-                        <ProgressBar value={stats?.diskUsageInBytes || 0} max={server.limits.disk * 1024 * 1024 || 10000000000} />
-                        <div css={tw`flex justify-between text-[11px] text-gray-400 font-bold mt-2`}>
-                            <span>0 GB</span>
-                            <span>{server.limits.disk > 0 ? `${(server.limits.disk / 1024).toFixed(2)} GB` : '∞'}</span>
-                        </div>
-                    </div>
-
-                    {/* Buttons */}
-                    <div css={tw`flex justify-between gap-4 mt-2`} className="action-buttons">
-                        <ActionButton onClick={(e) => { e.preventDefault(); sendPowerCommand('start'); }}>
-                            <Icon.Play size={14} /> START
-                        </ActionButton>
-                        <ActionButton onClick={(e) => { e.preventDefault(); sendPowerCommand('restart'); }}>
-                            <Icon.RefreshCw size={14} /> RESTART
-                        </ActionButton>
-                    </div>
-
-                    <ManageButton to={`/server/${server.id}`} className="manage-button">
+                    <ManageButton to={`/server/${server.id}`}>
                         Manage Server
                     </ManageButton>
                 </ActionsColumn>
-
             </CardInner>
         </ArixCard>
     );
