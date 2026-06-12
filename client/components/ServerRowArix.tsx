@@ -159,10 +159,10 @@ export default ({ server, className }: { server: Server; className?: string }) =
                     <ServerImage $bg={eggBg} />
                     <div css={tw`flex flex-col justify-center h-full py-1`}>
                         <h3 css={tw`text-2xl font-black text-white mb-1 tracking-tight`}>{server.name}</h3>
-                        <p css={tw`text-xs font-semibold text-gray-400 mb-3`}>{server.eggName || 'Minecraft Server'}</p>
+                        <p css={tw`text-xs font-semibold text-gray-400 mb-3`}>{(server as any).eggName || (server as any).egg?.name || 'Server'}</p>
                         <div css={tw`flex gap-2 mb-3`}>
                             <span css={tw`px-2.5 py-1 rounded bg-[#1e2521] text-[#2ecc71] text-[10px] font-black border border-[#2c3530] uppercase tracking-wider`}>
-                                {server.eggName?.split(' ')[0] || 'SERVER'}
+                                {((server as any).eggName || (server as any).egg?.name || 'SERVER').split(' ')[0]}
                             </span>
                         </div>
                         <div css={tw`flex items-center gap-2 px-3.5 py-2 bg-[#1a201c] rounded-full border border-[#2c3530]`}>
