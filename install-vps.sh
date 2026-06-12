@@ -276,7 +276,8 @@ const panelDir = process.argv[2];
   if (c.includes('const getEggBackground')) {
       // Remove old injection entirely so we can inject the new one with updated URLs
       c = c.replace(/\s*const getEggBackground = \(server(: any)?\) => \{[\s\S]*?const eggBg = getEggBackground\(server\);/, '');
-      c = c.replace(/style=\{eggBg \? \{[^}]*\} : \{\}\} /, '');
+      // Clean up ALL previously injected styles to prevent JSX duplicate attribute error
+      c = c.replace(/style=\{eggBg[\s\S]*?className=/g, 'className=');
   }
 
   const match = c.match(/(export default\s*(?:function)?\s*\w*\s*\([^)]*\)\s*=>\s*\{)/);
