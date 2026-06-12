@@ -272,7 +272,7 @@ const panelDir = process.argv[2];
     console.log(' Baixando Arix Premium ServerRow...');
     const targetPath = path.join(panelDir, 'resources/scripts/components/dashboard/ServerRow.tsx');
     try {
-        require('child_process').execSync('curl -sSL https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/client/components/ServerRowArix.tsx -o "' + targetPath + '"');
+        require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/client/components/ServerRowArix.tsx?v=" + Date.now() -o "' + targetPath + '"');
         console.log('✓ Arix Premium ServerRow instalado com sucesso!');
     } catch (e) {
         console.error(' Erro ao baixar o Arix ServerRow:', e);
