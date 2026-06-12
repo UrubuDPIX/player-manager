@@ -273,8 +273,8 @@ const panelDir = process.argv[2];
     const targetPath = path.join(panelDir, 'resources/scripts/components/dashboard/ServerRow.tsx');
     const layoutManagerPath = path.join(panelDir, 'resources/scripts/components/dashboard/LayoutManager.tsx');
     try {
-        require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/8293041efd85b2426d083c7fe976fc753aa6c6f4/client/components/ServerRowArix.tsx?v=' + Date.now() + '" -o "' + targetPath + '"');
-        require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/8293041efd85b2426d083c7fe976fc753aa6c6f4/client/components/LayoutManager.tsx?v=' + Date.now() + '" -o "' + layoutManagerPath + '"');
+        require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/48d0c6e0c0df3b1e3e7f671c6d376f9d3b7e7a8e/client/components/ServerRowArix.tsx?v=' + Date.now() + '" -o "' + targetPath + '"');
+        require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/48d0c6e0c0df3b1e3e7f671c6d376f9d3b7e7a8e/client/components/LayoutManager.tsx?v=' + Date.now() + '" -o "' + layoutManagerPath + '"');
         console.log('✓ Arix Premium ServerRow instalado com sucesso!');
     } catch (e) {
         console.error(' Erro ao baixar o Arix ServerRow:', e);
