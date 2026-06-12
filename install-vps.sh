@@ -336,12 +336,13 @@ const panelDir = process.argv[2];
     const themeCss = `
 /* === EUPHORIA THEME OVERRIDES === */
 
-/* Escala global */
-html {
-    font-size: 14px !important;
+/* Escala global verdadeira para encolher o painel sem quebrar o Tailwind */
+body {
+    zoom: 0.85;
+    background: transparent !important;
 }
 
-body, #app, #app > div, #app > div > div {
+#app, #app > div, #app > div > div {
     background: transparent !important;
 }
 
@@ -380,7 +381,7 @@ div.w-16 > div, div.w-20 > div, nav > div {
 /* CORREÇÃO DO TAMANHO DOS CARDS (Super Compactos) */
 div[class*="ServerRow"] {
     padding: 0.5rem 1rem !important; /* Reduz muito as bordas internas */
-    min-height: auto !important;
+    min-height: 80px !important;
     gap: 0.25rem !important;
 }
 
@@ -388,7 +389,7 @@ div[class*="ServerRow"] {
 div[class*="ServerRow"] .mt-4, 
 div[class*="ServerRow"] .mt-5, 
 div[class*="ServerRow"] .mt-6 {
-    margin-top: 0.25rem !important;
+    margin-top: 0 !important;
 }
 
 div[class*="ServerRow"] .mb-4, 
