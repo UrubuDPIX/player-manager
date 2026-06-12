@@ -324,12 +324,7 @@ aside, div.w-16, div.w-20 {
     overflow-x: hidden !important;
 }
 
-/* FORÇA O LAYOUT DE 1 COLUNA NA DASHBOARD PARA O TEMA ARIX (HORIZONTAIS) */
-#app > div > div > div.grid {
-    grid-template-columns: 1fr !important;
-    gap: 1.5rem !important;
-}
-
+/* FORÇA O LAYOUT DE 1 COLUNA REMOVIDO PARA SUPORTE AO SERVER SORTER E GRID */
 button {
     backdrop-filter: blur(4px) !important;
 }

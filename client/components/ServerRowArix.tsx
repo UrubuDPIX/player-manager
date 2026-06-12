@@ -9,11 +9,13 @@ import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/ser
 import http from '@/api/http';
 
 const ArixCard = styled.div`
-    ${tw`relative flex flex-col xl:flex-row w-full bg-[#161a18] rounded-[20px] overflow-hidden mb-6`}
+    ${tw`relative w-full bg-[#161a18] rounded-[20px] overflow-hidden mb-6`}
     border: 1px solid #1e2822;
     transition: all 0.3s ease;
     min-height: 180px;
     padding: 1.5rem;
+    container-type: inline-size;
+    container-name: arixcard;
 
     &:hover {
         border-color: #2ecc71;
@@ -21,8 +23,53 @@ const ArixCard = styled.div`
     }
 `;
 
+const CardInner = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 100%;
+
+    @container arixcard (min-width: 800px) {
+        flex-direction: row;
+    }
+`;
+
+const InfoColumn = styled.div`
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.25rem;
+
+    @container arixcard (min-width: 800px) {
+        width: 35%;
+        align-items: flex-start;
+    }
+`;
+
+const StatsColumn = styled.div`
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.5rem;
+
+    @container arixcard (min-width: 800px) {
+        width: 30%;
+    }
+`;
+
+const ActionsColumn = styled.div`
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+
+    @container arixcard (min-width: 800px) {
+        width: 35%;
+    }
+`;
+
 const ServerImage = styled.div<{ $bg: string }>`
-    ${tw`w-32 h-32 rounded-2xl flex-shrink-0 bg-gray-800 bg-center bg-cover bg-no-repeat relative`}
+    ${tw`w-24 h-24 sm:w-32 sm:h-32 rounded-2xl flex-shrink-0 bg-gray-800 bg-center bg-cover bg-no-repeat relative`}
     ${({ $bg }) => `background-image: ${$bg};`}
     box-shadow: 0 8px 20px rgba(0,0,0,0.5);
     
@@ -59,7 +106,7 @@ const ActionButton = styled.button<{ $type?: 'start' | 'restart' | 'stop' }>`
 `;
 
 const ManageButton = styled(Link)`
-    ${tw`w-full flex items-center justify-center py-2.5 rounded-xl text-sm font-bold text-[#0d120f] transition-all mt-4`}
+    ${tw`w-full flex items-center justify-center py-2.5 rounded-xl text-sm font-bold text-[#0d120f] transition-all mt-2`}
     background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
     box-shadow: 0 4px 15px rgba(46, 204, 113, 0.25);
 
@@ -71,7 +118,7 @@ const ManageButton = styled(Link)`
 `;
 
 const StatusPill = styled.div<{ $status: ServerPowerState | undefined }>`
-    ${tw`absolute top-5 right-5 flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase bg-[#1a201c] border border-[#2c3530]`}
+    ${tw`absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase bg-[#1a201c] border border-[#2c3530] z-10`}
     color: ${({ $status }) => 
         !$status || $status === 'offline' ? '#e74c3c' : 
         $status === 'running' ? '#2ecc71' : '#f1c40f'
@@ -91,7 +138,7 @@ type Timer = ReturnType<typeof setInterval>;
 
 export default ({ server, className }: { server: Server; className?: string }) => {
     const getEggBackground = (server: any) => {
-        if (server.bgImage) return `url(${server.bgImage})`;
+        if (server.bgImage) return \`url(\${server.bgImage})\`;
         const eggStr = [
             server.name, server.description,
             server.eggName, server.egg_name, 
@@ -143,7 +190,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
     }, [isSuspended]);
 
     const sendPowerCommand = (command: 'start' | 'restart') => {
-        http.post(`/api/client/servers/${server.uuid}/power`, { signal: command }).catch(console.error);
+        http.post(\`/api/client/servers/\${server.uuid}/power\`, { signal: command }).catch(console.error);
     };
 
     return (
@@ -152,30 +199,30 @@ export default ({ server, className }: { server: Server; className?: string }) =
                 {stats?.status || 'OFFLINE'}
             </StatusPill>
             
-            <div css={tw`flex flex-col xl:flex-row w-full gap-8`}>
+            <CardInner>
                 
                 {/* 1. EGG INFO COLUMN */}
-                <div css={tw`flex flex-row items-center xl:items-start gap-5 xl:w-[35%]`}>
+                <InfoColumn>
                     <ServerImage $bg={eggBg} />
                     <div css={tw`flex flex-col justify-center h-full py-1`}>
-                        <h3 css={tw`text-2xl font-black text-white mb-1 tracking-tight`}>{server.name}</h3>
-                        <p css={tw`text-xs font-semibold text-gray-400 mb-3`}>{(server as any).eggName || (server as any).egg?.name || 'Server'}</p>
-                        <div css={tw`flex gap-2 mb-3`}>
+                        <h3 css={tw`text-xl sm:text-2xl font-black text-white mb-1 tracking-tight pr-16`}>{server.name}</h3>
+                        <p css={tw`text-xs font-semibold text-gray-400 mb-2 sm:mb-3`}>{(server as any).eggName || (server as any).egg?.name || 'Server'}</p>
+                        <div css={tw`flex gap-2 mb-2 sm:mb-3`}>
                             <span css={tw`px-2.5 py-1 rounded bg-[#1e2521] text-[#2ecc71] text-[10px] font-black border border-[#2c3530] uppercase tracking-wider`}>
                                 {((server as any).eggName || (server as any).egg?.name || 'SERVER').split(' ')[0]}
                             </span>
                         </div>
-                        <div css={tw`flex items-center gap-2 px-3.5 py-2 bg-[#1a201c] rounded-full border border-[#2c3530]`}>
+                        <div css={tw`flex items-center gap-2 px-3.5 py-2 bg-[#1a201c] rounded-full border border-[#2c3530] w-fit`}>
                             <Icon.Globe size={13} color="#2ecc71" />
-                            <span css={tw`text-[11px] font-bold text-gray-300 tracking-wide`}>
-                                IP: {server.allocations.filter(a => a.isDefault).map(a => `${a.alias || ip(a.ip)}:${a.port}`)[0]}
+                            <span css={tw`text-[10px] sm:text-[11px] font-bold text-gray-300 tracking-wide truncate max-w-[150px] sm:max-w-[200px]`}>
+                                {server.allocations.filter(a => a.isDefault).map(a => \`\${a.alias || ip(a.ip)}:\${a.port}\`)[0]}
                             </span>
                         </div>
                     </div>
-                </div>
+                </InfoColumn>
 
                 {/* 2. CPU & RAM COLUMN */}
-                <div css={tw`flex flex-col justify-center gap-6 xl:w-[30%]`}>
+                <StatsColumn>
                     {/* CPU */}
                     <div>
                         <div css={tw`flex justify-between items-center mb-1`}>
@@ -187,7 +234,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                         <ProgressBar value={stats?.cpuUsagePercent || 0} max={server.limits.cpu || 200} />
                         <div css={tw`flex justify-between text-[11px] text-gray-400 font-bold mt-2`}>
                             <span>0%</span>
-                            <span>{server.limits.cpu > 0 ? `${server.limits.cpu}%` : '∞'}</span>
+                            <span>{server.limits.cpu > 0 ? \`\${server.limits.cpu}%\` : '∞'}</span>
                         </div>
                     </div>
 
@@ -202,13 +249,13 @@ export default ({ server, className }: { server: Server; className?: string }) =
                         <ProgressBar value={stats?.memoryUsageInBytes || 0} max={server.limits.memory * 1024 * 1024 || 4000000000} />
                         <div css={tw`flex justify-between text-[11px] text-gray-400 font-bold mt-2`}>
                             <span>0 GB</span>
-                            <span>{server.limits.memory > 0 ? `${(server.limits.memory / 1024).toFixed(2)} GB` : '∞'}</span>
+                            <span>{server.limits.memory > 0 ? \`\${(server.limits.memory / 1024).toFixed(2)} GB\` : '∞'}</span>
                         </div>
                     </div>
-                </div>
+                </StatsColumn>
 
                 {/* 3. DISK & ACTIONS COLUMN */}
-                <div css={tw`flex flex-col justify-center gap-4 xl:w-[35%]`}>
+                <ActionsColumn>
                     {/* DISK */}
                     <div css={tw`mb-1`}>
                         <div css={tw`flex justify-between items-center mb-1`}>
@@ -220,7 +267,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                         <ProgressBar value={stats?.diskUsageInBytes || 0} max={server.limits.disk * 1024 * 1024 || 10000000000} />
                         <div css={tw`flex justify-between text-[11px] text-gray-400 font-bold mt-2`}>
                             <span>0 GB</span>
-                            <span>{server.limits.disk > 0 ? `${(server.limits.disk / 1024).toFixed(2)} GB` : '∞'}</span>
+                            <span>{server.limits.disk > 0 ? \`\${(server.limits.disk / 1024).toFixed(2)} GB\` : '∞'}</span>
                         </div>
                     </div>
 
@@ -234,12 +281,12 @@ export default ({ server, className }: { server: Server; className?: string }) =
                         </ActionButton>
                     </div>
 
-                    <ManageButton to={`/server/${server.id}`}>
+                    <ManageButton to={\`/server/\${server.id}\`}>
                         Manage Server
                     </ManageButton>
-                </div>
+                </ActionsColumn>
 
-            </div>
+            </CardInner>
         </ArixCard>
     );
 };
