@@ -295,12 +295,12 @@ export default ({ server, className }: { server: Server; className?: string }) =
 
             {/* Server name + egg (center of card, always visible) */}
             <div style={{
-                position: 'absolute', bottom: hovered ? 'auto' : 30, top: hovered ? 'auto' : 'auto',
+                position: 'absolute',
                 left: 0, right: 0,
                 zIndex: 3,
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                 padding: '0 16px',
-                textAlign: 'center',
+                textAlign: 'center' as const,
                 bottom: hovered ? 'unset' : 30,
                 top: hovered ? 10 : 'unset',
                 transition: 'all 0.3s ease',
