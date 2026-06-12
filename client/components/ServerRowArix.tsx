@@ -10,35 +10,40 @@ import http from '@/api/http';
 import LayoutManager from './LayoutManager';
 
 const ArixCard = styled.div<{ $bg: string }>`
-    ${tw`relative w-full bg-[#161a18] rounded-[20px] overflow-hidden mb-6`}
-    border: 1px solid #1e2822;
+    /* ROW LAYOUT (Padrão) */
+    ${tw`flex flex-row items-center h-[160px] min-h-[160px] rounded-lg w-full max-w-[1200px] p-4 relative overflow-hidden`}
+    background-color: var(--hyper-sidebar, #161a18);
+    border: 1px solid var(--hyper-accent, #1e2822);
+    backdrop-filter: blur(16px);
     transition: all 0.3s ease;
-    min-height: 180px;
-    padding: 1.5rem;
-    container-type: inline-size;
-    container-name: arixcard;
+    margin-bottom: 1.5rem;
 
-    &:hover {
-        border-color: #2ecc71;
-        box-shadow: 0 0 25px rgba(46, 204, 113, 0.08);
-    }
-    
-    body[data-arix-layout="grid"] & {
-        min-height: 250px;
-        padding: 1.25rem;
-    }
+    /* COMPACT LAYOUT */
     body[data-arix-layout="compact"] & {
+        ${tw`flex flex-col rounded-lg shadow-lg transition-opacity duration-300 opacity-100`}
+        background-color: var(--hyper-primary-30, rgba(15,17,16,0.6));
+        border: 1px solid var(--hyper-accent, #1e2822);
         min-height: 280px;
-        padding: 1rem;
-        border-radius: 16px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
+        position: relative;
         ${props => props.$bg && `
             background-image: linear-gradient(to top, rgba(15,17,16,1) 0%, rgba(15,17,16,0.3) 100%), ${props.$bg};
             background-size: cover;
             background-position: center;
         `}
+    }
+
+    /* GRID LAYOUT (Borda animada que o usuario pediu) */
+    body[data-arix-layout="grid"] & {
+        ${tw`flex flex-col relative`}
+        min-height: 280px;
+        --border-width: 2px;
+        --duration: 14s;
+        background-image: radial-gradient(transparent, transparent, var(--hyper-primary, #e11d48), transparent, transparent);
+        background-size: 300% 300%;
+        mask: linear-gradient(rgb(255, 255, 255) 0px, rgb(255, 255, 255) 0px) content-box exclude, linear-gradient(rgb(255, 255, 255) 0px, rgb(255, 255, 255) 0px);
+        padding: var(--border-width);
+        border: none;
+        backdrop-filter: none;
     }
 `;
 
@@ -293,7 +298,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
     };
 
     return (
-        <ArixCard className={className} $bg={eggBg}>
+        <ArixCard className={`server-row ${className || ''}`} $bg={eggBg}>
             {isFirstCardRef.current && <LayoutManager />}
             <StatusPill $status={stats?.status}>
                 {stats?.status || 'OFFLINE'}
