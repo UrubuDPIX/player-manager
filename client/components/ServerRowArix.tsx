@@ -427,7 +427,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
     );
 
     /* ---- Listen to layout changes ---- */
-    const [currentLayout, setCurrentLayout] = useState(layout);
+    const [currentLayout, setCurrentLayout] = useState(() => document.body.getAttribute('data-arix-layout') || localStorage.getItem('arix-layout') || 'row');
     useEffect(() => {
         const observer = new MutationObserver(() => {
             setCurrentLayout(document.body.getAttribute('data-arix-layout') || 'row');
