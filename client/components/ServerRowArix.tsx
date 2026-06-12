@@ -212,7 +212,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                                 {((server as any).eggName || (server as any).egg?.name || 'SERVER').split(' ')[0]}
                             </span>
                         </div>
-                        <div css={tw`flex items-center gap-2 px-3.5 py-2 bg-[#1a201c] rounded-full border border-[#2c3530] w-fit`}>
+                        <div css={[tw`flex items-center gap-2 px-3.5 py-2 bg-[#1a201c] rounded-full border border-[#2c3530]`, { width: 'fit-content' }]}>
                             <Icon.Globe size={13} color="#2ecc71" />
                             <span css={tw`text-[10px] sm:text-[11px] font-bold text-gray-300 tracking-wide truncate max-w-[150px] sm:max-w-[200px]`}>
                                 {server.allocations.filter(a => a.isDefault).map(a => `${a.alias || ip(a.ip)}:${a.port}`)[0]}
