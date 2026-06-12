@@ -270,8 +270,8 @@ const panelDir = process.argv[2];
 // 4. Download Arix Premium ServerRow & LayoutManager
 (function installArixServerRow() {
     console.log(' Baixando Arix Premium ServerRow & LayoutManager...');
-    const targetPath = path.join(panelDir, 'resources/scripts/components/dashboard/ServerRow.tsx');
-    const layoutManagerPath = path.join(panelDir, 'resources/scripts/components/dashboard/LayoutManager.tsx');
+    const targetPath = path.join(panelDir, 'resources/scripts/components/account/ServerRow.tsx');
+    const layoutManagerPath = path.join(panelDir, 'resources/scripts/components/account/LayoutManager.tsx');
     try {
         require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/48d0c6e0c0df3b1e3e7f671c6d376f9d3b7e7a8e/client/components/ServerRowArix.tsx?v=' + Date.now() + '" -o "' + targetPath + '"');
         require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/48d0c6e0c0df3b1e3e7f671c6d376f9d3b7e7a8e/client/components/LayoutManager.tsx?v=' + Date.now() + '" -o "' + layoutManagerPath + '"');
