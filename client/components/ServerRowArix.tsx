@@ -7,6 +7,8 @@ import Spinner from '@/components/elements/Spinner';
 import { bytesToString, ip } from '@/lib/formatters';
 import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
 import http from '@/api/http';
+import LayoutManager from './LayoutManager';
+import LayoutManager from './LayoutManager';
 
 const ArixCard = styled.div`
     ${tw`relative w-full bg-[#161a18] rounded-[20px] overflow-hidden mb-6`}
@@ -21,6 +23,16 @@ const ArixCard = styled.div`
         border-color: #2ecc71;
         box-shadow: 0 0 25px rgba(46, 204, 113, 0.08);
     }
+    
+    body[data-arix-layout="grid"] & {
+        min-height: 250px;
+        padding: 1.25rem;
+    }
+    body[data-arix-layout="compact"] & {
+        min-height: 200px;
+        padding: 1rem;
+        border-radius: 16px;
+    }
 `;
 
 const CardInner = styled.div`
@@ -32,6 +44,20 @@ const CardInner = styled.div`
     @container arixcard (min-width: 800px) {
         flex-direction: row;
     }
+
+    body[data-arix-layout="row"] & {
+        flex-direction: row;
+        align-items: center;
+        gap: 2rem;
+    }
+    body[data-arix-layout="grid"] & {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    body[data-arix-layout="compact"] & {
+        flex-direction: column;
+        gap: 1rem;
+    }
 `;
 
 const InfoColumn = styled.div`
@@ -39,10 +65,27 @@ const InfoColumn = styled.div`
     flex-direction: row;
     align-items: center;
     gap: 1.25rem;
+    overflow: hidden;
 
     @container arixcard (min-width: 800px) {
         width: 35%;
         align-items: flex-start;
+    }
+
+    body[data-arix-layout="row"] & {
+        width: 35%;
+        align-items: flex-start;
+    }
+    body[data-arix-layout="grid"] & {
+        flex-direction: column;
+        text-align: center;
+        width: 100%;
+        .server-tags { justify-content: center; }
+    }
+    body[data-arix-layout="compact"] & {
+        flex-direction: row;
+        width: 100%;
+        gap: 1rem;
     }
 `;
 
@@ -54,6 +97,21 @@ const StatsColumn = styled.div`
 
     @container arixcard (min-width: 800px) {
         width: 30%;
+    }
+
+    body[data-arix-layout="row"] & {
+        width: 30%;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    body[data-arix-layout="grid"] & {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    body[data-arix-layout="compact"] & {
+        display: none;
     }
 `;
 
@@ -136,7 +194,27 @@ const StatusPill = styled.div<{ $status: ServerPowerState | undefined }>`
 
 type Timer = ReturnType<typeof setInterval>;
 
+let globalIsFirstCard = true;
+
+let globalIsFirstCard = true;
+
 export default ({ server, className }: { server: Server; className?: string }) => {
+    const isFirstCardRef = useRef(globalIsFirstCard);
+    useEffect(() => {
+        globalIsFirstCard = false;
+        return () => {
+            globalIsFirstCard = true;
+        };
+    }, []);
+    const isFirstCardRef = useRef(globalIsFirstCard);
+    useEffect(() => {
+        globalIsFirstCard = false;
+        return () => {
+            // Se desmontar tudo (ex: sai da pagina), reseta para o proximo mount
+            globalIsFirstCard = true;
+        };
+    }, []);
+
     const getEggBackground = (server: any) => {
         if (server.bgImage) return `url(${server.bgImage})`;
         const eggStr = [
@@ -195,6 +273,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
 
     return (
         <ArixCard className={className}>
+            {isFirstCardRef.current && <LayoutManager />}
             <StatusPill $status={stats?.status}>
                 {stats?.status || 'OFFLINE'}
             </StatusPill>
@@ -204,9 +283,9 @@ export default ({ server, className }: { server: Server; className?: string }) =
                 {/* 1. EGG INFO COLUMN */}
                 <InfoColumn>
                     <ServerImage $bg={eggBg} />
-                    <div css={tw`flex flex-col justify-center h-full py-1`}>
-                        <h3 css={tw`text-xl sm:text-2xl font-black text-white mb-1 tracking-tight pr-16`}>{server.name}</h3>
-                        <p css={tw`text-xs font-semibold text-gray-400 mb-2 sm:mb-3`}>{(server as any).eggName || (server as any).egg?.name || 'Server'}</p>
+                    <div css={tw`flex flex-col justify-center h-full py-1 overflow-hidden w-full`}>
+                        <h3 css={tw`text-lg sm:text-2xl font-black text-white mb-1 tracking-tight truncate`}>{server.name}</h3>
+                        <p css={tw`text-xs font-semibold text-gray-400 mb-2 sm:mb-3 truncate`}>{(server as any).eggName || (server as any).egg?.name || 'Server'}</p>
                         <div css={tw`flex gap-2 mb-2 sm:mb-3`}>
                             <span css={tw`px-2.5 py-1 rounded bg-[#1e2521] text-[#2ecc71] text-[10px] font-black border border-[#2c3530] uppercase tracking-wider`}>
                                 {((server as any).eggName || (server as any).egg?.name || 'SERVER').split(' ')[0]}
@@ -257,7 +336,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                 {/* 3. DISK & ACTIONS COLUMN */}
                 <ActionsColumn>
                     {/* DISK */}
-                    <div css={tw`mb-1`}>
+                    <div css={tw`mb-1`} className="disk-stats">
                         <div css={tw`flex justify-between items-center mb-1`}>
                             <div css={tw`flex items-center gap-2 text-[13px] font-bold text-gray-200`}>
                                 <Icon.HardDrive size={15} color="#2ecc71" />
@@ -272,7 +351,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                     </div>
 
                     {/* Buttons */}
-                    <div css={tw`flex justify-between gap-4 mt-2`}>
+                    <div css={tw`flex justify-between gap-4 mt-2`} className="action-buttons">
                         <ActionButton onClick={(e) => { e.preventDefault(); sendPowerCommand('start'); }}>
                             <Icon.Play size={14} /> START
                         </ActionButton>
@@ -281,7 +360,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
                         </ActionButton>
                     </div>
 
-                    <ManageButton to={`/server/${server.id}`}>
+                    <ManageButton to={`/server/${server.id}`} className="manage-button">
                         Manage Server
                     </ManageButton>
                 </ActionsColumn>

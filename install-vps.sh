@@ -267,12 +267,14 @@ const panelDir = process.argv[2];
   fs.writeFileSync(targetFile, fileContent);
 })();
 
-// 4. Download Arix Premium ServerRow Instead of Injecting
+// 4. Download Arix Premium ServerRow & LayoutManager
 (function installArixServerRow() {
-    console.log(' Baixando Arix Premium ServerRow...');
+    console.log(' Baixando Arix Premium ServerRow & LayoutManager...');
     const targetPath = path.join(panelDir, 'resources/scripts/components/dashboard/ServerRow.tsx');
+    const layoutManagerPath = path.join(panelDir, 'resources/scripts/components/dashboard/LayoutManager.tsx');
     try {
         require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/client/components/ServerRowArix.tsx?v=' + Date.now() + '" -o "' + targetPath + '"');
+        require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/client/components/LayoutManager.tsx?v=' + Date.now() + '" -o "' + layoutManagerPath + '"');
         console.log('✓ Arix Premium ServerRow instalado com sucesso!');
     } catch (e) {
         console.error(' Erro ao baixar o Arix ServerRow:', e);
