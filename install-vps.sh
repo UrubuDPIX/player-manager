@@ -336,13 +336,8 @@ const panelDir = process.argv[2];
     const themeCss = `
 /* === EUPHORIA THEME OVERRIDES === */
 
-/* Escala global verdadeira para encolher o painel sem quebrar o Tailwind */
-body {
-    zoom: 0.85;
-    background: transparent !important;
-}
-
-#app, #app > div, #app > div > div {
+/* Remove fundos sólidos do corpo da página para dar espaço ao Glassmorphism */
+body, #app, #app > div, #app > div > div {
     background: transparent !important;
 }
 
@@ -367,20 +362,13 @@ body::before {
     border-color: rgba(255, 255, 255, 0.05) !important;
 }
 
-/* CORREÇÃO DA SIDEBAR (Barra Lateral) */
-/* O Jexactyl geralmente aninha a sidebar no primeiro filho. Forçamos o scroll: */
-#app > div > div:first-child {
+/* CORREÇÃO DA SIDEBAR (Permite scroll se a tela for muito pequena para evitar sobreposição) */
+aside, div.w-16, div.w-20 {
     overflow-y: auto !important;
     overflow-x: hidden !important;
 }
-#app > div > div:first-child .flex-col {
-    gap: 0.5rem !important;
-}
-#app > div > div:first-child > div.flex-col.justify-between {
-    padding-bottom: 2rem !important;
-}
 
-/* CORREÇÃO DO TAMANHO DOS CARDS (Super Compactos) */
+/* CORREÇÃO DO TAMANHO DOS CARDS NA DASHBOARD (Super Compactos) */
 a[data-euphoria="card"] {
     padding: 0.5rem 1.25rem !important; /* Reduz muito as bordas internas */
     min-height: 85px !important;
@@ -391,9 +379,9 @@ a[data-euphoria="card"] {
     border-radius: 12px !important;
 }
 
-/* Reduz os espaçamentos gigantes padrões do Pterodactyl dentro dos cards */
+/* Reduz os espaçamentos padrões do Pterodactyl dentro dos cards */
 a[data-euphoria="card"] > div {
-    margin-top: 0.15rem !important;
+    margin-top: 0.25rem !important;
     margin-bottom: 0 !important;
 }
 
