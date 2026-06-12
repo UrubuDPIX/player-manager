@@ -9,7 +9,7 @@ import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/ser
 import http from '@/api/http';
 import LayoutManager from './LayoutManager';
 
-const ArixCard = styled.div<{ $bg: string }>`
+const ArixCard = styled.div`
     ${tw`relative w-full bg-[#161a18] rounded-[20px] overflow-hidden mb-6`}
     border: 1px solid #1e2822;
     transition: all 0.3s ease;
@@ -28,18 +28,9 @@ const ArixCard = styled.div<{ $bg: string }>`
         padding: 1.25rem;
     }
     body[data-arix-layout="compact"] & {
-        min-height: 280px;
+        min-height: 200px;
         padding: 1rem;
         border-radius: 16px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        border: 2px solid #e11d48; /* Red border from image */
-        ${props => props.$bg && `
-            background-image: linear-gradient(to top, rgba(15,17,16,1) 0%, rgba(15,17,16,0.3) 100%), ${props.$bg};
-            background-size: cover;
-            background-position: center;
-        `}
     }
 `;
 
@@ -59,16 +50,12 @@ const CardInner = styled.div`
         gap: 2rem;
     }
     body[data-arix-layout="grid"] & {
-        flex-direction: row;
-        flex-wrap: wrap;
+        flex-direction: column;
         gap: 1.5rem;
     }
     body[data-arix-layout="compact"] & {
         flex-direction: column;
         gap: 1rem;
-        background: rgba(15,17,16,0.6);
-        border-radius: 12px;
-        padding: 1.5rem;
     }
 `;
 
@@ -89,34 +76,21 @@ const InfoColumn = styled.div`
         align-items: flex-start;
     }
     body[data-arix-layout="grid"] & {
+        flex-direction: row;
+        text-align: left;
+        width: 100%;
+        align-items: center;
+        gap: 1.5rem;
+        .server-tags { justify-content: flex-start; }
+    }
+    body[data-arix-layout="compact"] & {
         flex-direction: column;
         text-align: center;
         width: 100%;
-        position: relative;
-        .server-tags { display: none; }
-        .server-name {
-            position: absolute;
-            top: -120px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 24px;
-            z-index: 10;
-        }
-        .ip-pill { display: none; }
-    }
-    body[data-arix-layout="compact"] & {
-        flex-direction: row;
-        width: 100%;
+        align-items: center;
         gap: 1rem;
-        justify-content: center;
-        text-align: center;
+        .server-tags { justify-content: center; }
         .info-texts { align-items: center; }
-        .server-tags { display: none; }
-        .server-name {
-            font-size: 24px;
-            z-index: 10;
-        }
-        .ip-pill { display: none; }
     }
 `;
 
@@ -136,13 +110,13 @@ const StatsColumn = styled.div`
         gap: 1.5rem;
     }
     body[data-arix-layout="grid"] & {
-        width: 45%;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
+        display: none;
     }
     body[data-arix-layout="compact"] & {
-        display: none;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
     }
 `;
 
@@ -294,7 +268,7 @@ export default ({ server, className }: { server: Server; className?: string }) =
     };
 
     return (
-        <ArixCard className={className} $bg={eggBg}>
+        <ArixCard className={className}>
             {isFirstCardRef.current && <LayoutManager />}
             <StatusPill $status={stats?.status}>
                 {stats?.status || 'OFFLINE'}
@@ -306,14 +280,14 @@ export default ({ server, className }: { server: Server; className?: string }) =
                 <InfoColumn>
                     <ServerImage $bg={eggBg} />
                     <div css={tw`flex flex-col justify-center h-full py-1 overflow-hidden w-full`} className="info-texts">
-                        <h3 className="server-name" css={tw`text-lg sm:text-2xl font-black text-white mb-1 tracking-tight truncate`}>{server.name}</h3>
+                        <h3 css={tw`text-lg sm:text-2xl font-black text-white mb-1 tracking-tight truncate`}>{server.name}</h3>
                         <p css={tw`text-xs font-semibold text-gray-400 mb-2 sm:mb-3 truncate`}>{(server as any).eggName || (server as any).egg?.name || 'Server'}</p>
                         <div css={tw`flex gap-2 mb-2 sm:mb-3`}>
                             <span css={tw`px-2.5 py-1 rounded bg-[#1e2521] text-[#2ecc71] text-[10px] font-black border border-[#2c3530] uppercase tracking-wider`}>
                                 {((server as any).eggName || (server as any).egg?.name || 'SERVER').split(' ')[0]}
                             </span>
                         </div>
-                        <div className="ip-pill" css={[tw`flex items-center gap-2 px-3.5 py-2 bg-[#1a201c] rounded-full border border-[#2c3530]`, { width: 'fit-content' }]}>
+                        <div css={[tw`flex items-center gap-2 px-3.5 py-2 bg-[#1a201c] rounded-full border border-[#2c3530]`, { width: 'fit-content' }]}>
                             <Icon.Globe size={13} color="#2ecc71" />
                             <span css={tw`text-[10px] sm:text-[11px] font-bold text-gray-300 tracking-wide truncate max-w-[150px] sm:max-w-[200px]`}>
                                 {server.allocations.filter(a => a.isDefault).map(a => `${a.alias || ip(a.ip)}:${a.port}`)[0]}
