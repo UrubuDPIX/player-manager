@@ -46,24 +46,24 @@ const LayoutManager = () => {
     }, []);
 
     const SorterUI = (
-        <div css={tw`fixed bottom-8 right-8 z-50 flex gap-2 p-2 bg-[#161a18]/90 rounded-2xl border border-[#2c3530] shadow-[0_10px_40px_rgba(0,0,0,0.5)]`}>
+        <div css={tw`fixed bottom-8 right-8 z-50 flex gap-2 p-2 rounded-2xl border border-[#2c3530] shadow-[0_10px_40px_rgba(0,0,0,0.5)]`} style={{ backgroundColor: 'rgba(22, 26, 24, 0.9)' }}>
             <button 
                 onClick={() => setLayout('row')} 
-                css={[tw`p-2.5 rounded-xl hover:bg-[#2c3530] transition-all duration-300 flex items-center gap-2 group`, layout === 'row' && tw`text-[#2ecc71] bg-[#1a201c] border border-[#2ecc71]/30`]}
+                css={[tw`p-2.5 rounded-xl hover:bg-[#2c3530] transition-all duration-300 flex items-center gap-2 group`, layout === 'row' && tw`text-[#2ecc71] bg-[#1a201c] border`, layout === 'row' && { borderColor: 'rgba(46, 204, 113, 0.3)' }]}
                 title="Row Layout"
             >
                 <Icon.List size={18} className="group-hover:scale-110 transition-transform" />
             </button>
             <button 
                 onClick={() => setLayout('grid')} 
-                css={[tw`p-2.5 rounded-xl hover:bg-[#2c3530] transition-all duration-300 flex items-center gap-2 group`, layout === 'grid' && tw`text-[#2ecc71] bg-[#1a201c] border border-[#2ecc71]/30`]}
+                css={[tw`p-2.5 rounded-xl hover:bg-[#2c3530] transition-all duration-300 flex items-center gap-2 group`, layout === 'grid' && tw`text-[#2ecc71] bg-[#1a201c] border`, layout === 'grid' && { borderColor: 'rgba(46, 204, 113, 0.3)' }]}
                 title="Grid Layout"
             >
                 <Icon.Grid size={18} className="group-hover:scale-110 transition-transform" />
             </button>
             <button 
                 onClick={() => setLayout('compact')} 
-                css={[tw`p-2.5 rounded-xl hover:bg-[#2c3530] transition-all duration-300 flex items-center gap-2 group`, layout === 'compact' && tw`text-[#2ecc71] bg-[#1a201c] border border-[#2ecc71]/30`]}
+                css={[tw`p-2.5 rounded-xl hover:bg-[#2c3530] transition-all duration-300 flex items-center gap-2 group`, layout === 'compact' && tw`text-[#2ecc71] bg-[#1a201c] border`, layout === 'compact' && { borderColor: 'rgba(46, 204, 113, 0.3)' }]}
                 title="Compact Layout"
             >
                 <Icon.Columns size={18} className="group-hover:scale-110 transition-transform" />
