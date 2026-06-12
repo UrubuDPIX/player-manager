@@ -359,7 +359,7 @@ body::before {
     z-index: -1;
 }
 
-/* Aplica o efeito de Glassmorphism */
+/* Aplica o efeito de Glassmorphism nas Sidebars, Navbars e modais */
 .bg-neutral-900, .bg-neutral-800, .bg-gray-900, .bg-gray-800, .bg-gray-700 {
     background-color: rgba(15, 15, 20, 0.45) !important;
     backdrop-filter: blur(12px) !important;
@@ -368,37 +368,39 @@ body::before {
 }
 
 /* CORREÇÃO DA SIDEBAR (Barra Lateral) */
-div.w-16, div.w-20, nav, aside {
-    overflow-y: auto !important; /* Permite rolar se faltar espaço */
+/* O Jexactyl geralmente aninha a sidebar no primeiro filho. Forçamos o scroll: */
+#app > div > div:first-child {
+    overflow-y: auto !important;
     overflow-x: hidden !important;
 }
-div.w-16 > div, div.w-20 > div, nav > div {
-    gap: 0.25rem !important; /* Aproxima os botões */
-    margin-bottom: 0.25rem !important;
-    padding-bottom: 0 !important;
+#app > div > div:first-child .flex-col {
+    gap: 0.5rem !important;
+}
+#app > div > div:first-child > div.flex-col.justify-between {
+    padding-bottom: 2rem !important;
 }
 
 /* CORREÇÃO DO TAMANHO DOS CARDS (Super Compactos) */
-div[class*="ServerRow"] {
-    padding: 0.5rem 1rem !important; /* Reduz muito as bordas internas */
-    min-height: 80px !important;
-    gap: 0.25rem !important;
+/* Em vez de usar classes que o React ofusca, pegamos todos os links de servidores! */
+a[href^="/server/"] {
+    padding: 0.5rem 1.25rem !important; /* Reduz muito as bordas internas */
+    min-height: 85px !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    border-radius: 12px !important;
 }
 
 /* Reduz os espaçamentos gigantes padrões do Pterodactyl dentro dos cards */
-div[class*="ServerRow"] .mt-4, 
-div[class*="ServerRow"] .mt-5, 
-div[class*="ServerRow"] .mt-6 {
-    margin-top: 0 !important;
-}
-
-div[class*="ServerRow"] .mb-4, 
-div[class*="ServerRow"] .mb-2 {
+a[href^="/server/"] > div {
+    margin-top: 0.15rem !important;
     margin-bottom: 0 !important;
 }
 
-div[class*="ServerRow"] p {
-    line-height: 1.1 !important;
+a[href^="/server/"] p {
+    line-height: 1.2 !important;
+    margin: 0 !important;
 }
 
 button {
