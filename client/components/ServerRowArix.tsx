@@ -8,7 +8,6 @@ import { bytesToString, ip } from '@/lib/formatters';
 import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
 import http from '@/api/http';
 import LayoutManager from './LayoutManager';
-import LayoutManager from './LayoutManager';
 
 const ArixCard = styled.div`
     ${tw`relative w-full bg-[#161a18] rounded-[20px] overflow-hidden mb-6`}
@@ -196,16 +195,7 @@ type Timer = ReturnType<typeof setInterval>;
 
 let globalIsFirstCard = true;
 
-let globalIsFirstCard = true;
-
 export default ({ server, className }: { server: Server; className?: string }) => {
-    const isFirstCardRef = useRef(globalIsFirstCard);
-    useEffect(() => {
-        globalIsFirstCard = false;
-        return () => {
-            globalIsFirstCard = true;
-        };
-    }, []);
     const isFirstCardRef = useRef(globalIsFirstCard);
     useEffect(() => {
         globalIsFirstCard = false;
