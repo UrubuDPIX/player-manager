@@ -24,35 +24,26 @@ const LayoutManager = () => {
     }, []);
 
     const applyGrid = (mode: string) => {
-        // Find the container that wraps the server cards
-        // In Jexactyl's DashboardContainer, it is typically a direct wrapper around the ServerRow items
-        const containers = document.querySelectorAll('.grid') as NodeListOf<HTMLElement>;
-        containers.forEach(el => {
-            // Only target the server list grid (avoid targeting the page-level grid)
-            if (!el.querySelector('.server-row') && !el.querySelector('[class*="server-row"]')) return;
+        // Encontra a primeira server-row
+        const firstRow = document.querySelector('.server-row');
+        if (!firstRow) return;
 
-            if (mode === 'row') {
-                el.style.setProperty('grid-template-columns', '1fr', 'important');
-                el.style.setProperty('gap', '0', 'important');
-            } else if (mode === 'grid') {
-                el.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
-                el.style.setProperty('gap', '0.75rem', 'important');
-            } else if (mode === 'compact') {
-                el.style.setProperty('grid-template-columns', 'repeat(5, minmax(0, 1fr))', 'important');
-                el.style.setProperty('gap', '0.75rem', 'important');
-            }
-        });
+        // O pai direto das server-rows é o container que queremos transformar em grid
+        const container = firstRow.parentElement;
+        if (!container) return;
 
-        // Also try the general approach for Pterodactyl's dashboard structure
-        const gen = document.querySelector('#app > div > div > div.grid') as HTMLElement;
-        if (gen) {
-            if (mode === 'row') {
-                gen.style.setProperty('grid-template-columns', '1fr', 'important');
-            } else if (mode === 'grid') {
-                gen.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
-            } else if (mode === 'compact') {
-                gen.style.setProperty('grid-template-columns', 'repeat(5, minmax(0, 1fr))', 'important');
-            }
+        // Força o display grid no container pai
+        container.style.setProperty('display', 'grid', 'important');
+
+        if (mode === 'row') {
+            container.style.setProperty('grid-template-columns', '1fr', 'important');
+            container.style.setProperty('gap', '0', 'important');
+        } else if (mode === 'grid') {
+            container.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
+            container.style.setProperty('gap', '0.75rem', 'important');
+        } else if (mode === 'compact') {
+            container.style.setProperty('grid-template-columns', 'repeat(5, 1fr)', 'important');
+            container.style.setProperty('gap', '0.75rem', 'important');
         }
     };
 
