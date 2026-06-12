@@ -267,60 +267,16 @@ const panelDir = process.argv[2];
   fs.writeFileSync(targetFile, fileContent);
 })();
 
-// 4. Patch ServerRow for Automatic Egg Backgrounds
-(function patchServerRowBg() {
-  const srPath = path.join(panelDir, 'resources/scripts/components/dashboard/ServerRow.tsx');
-  if (!fs.existsSync(srPath)) return;
-  let c = fs.readFileSync(srPath, 'utf8');
-
-  if (c.includes('const getEggBackground')) {
-      // Remove old injection entirely so we can inject the new one with updated URLs
-      c = c.replace(/\s*const getEggBackground = \(server(: any)?\) => \{[\s\S]*?const eggBg = getEggBackground\(server\);/, '');
-      // Clean up ALL previously injected styles to prevent JSX duplicate attribute error
-      c = c.replace(/(data-euphoria="card"\s*)?style=\{eggBg[\s\S]*?className=/g, 'className=');
-  }
-
-  const match = c.match(/(export default\s*(?:function)?\s*\w*\s*\([^)]*\)\s*=>\s*\{)/);
-  if (match) {
-    const inj = [
-      "    const getEggBackground = (server: any) => {",
-      "        if (server.bgImage) return `url(${server.bgImage})`;",
-      "        const eggStr = [",
-      "            server.name, server.description,",
-      "            server.eggName, server.egg_name, ",
-      "            server.egg?.name, server.egg,",
-      "            server.nestName, server.nest_name, ",
-      "            server.nest?.name, server.nest,",
-      "            server.dockerImage, server.invocation",
-      "        ].filter(Boolean).join(' ').toLowerCase();",
-      "        if (eggStr.includes('minecraft') || eggStr.includes('java') || eggStr.includes('modpack') || eggStr.includes('forge') || eggStr.includes('paper') || eggStr.includes('spigot') || eggStr.includes('moon')) {",
-      "            return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/user-minecraft.png)';",
-      "        }",
-      "        if (eggStr.includes('fivem') || eggStr.includes('gta') || eggStr.includes('redm')) {",
-      "            return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/user-fivem.jpg)';",
-      "        }",
-      "        if (eggStr.includes('node') || eggStr.includes('js')) {",
-      "            return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/user-nodejs.jpg)';",
-      "        }",
-      "        if (eggStr.includes('python') || eggStr.includes('bot') || eggStr.includes('discord')) {",
-      "            return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/user-python.jpg)';",
-      "        }",
-      "        if (eggStr.includes('lavalink') || eggStr.includes('music')) {",
-      "            return 'url(https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/bg-music.png)';",
-      "        }",
-      "        return '';",
-      "    };",
-      "    const eggBg = getEggBackground(server);"
-    ].join('\n');
-    
-    c = c.slice(0, match.index + match[0].length) + '\n' + inj + '\n' + c.slice(match.index + match[0].length);
-    
-    const afterInj = c.slice(match.index + match[0].length);
-    c = c.slice(0, match.index + match[0].length) + afterInj.replace(/className=/, 'data-euphoria="card" style={eggBg ? { backgroundImage: eggBg, backgroundSize: "cover", backgroundPosition: "center", backgroundBlendMode: "overlay", backgroundColor: "rgba(15, 20, 25, 0.82)", padding: "1rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.08)" } : { padding: "1rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.08)", backgroundColor: "rgba(15, 20, 25, 0.6)", backdropFilter: "blur(12px)" }} className=');
-
-    fs.writeFileSync(srPath, c);
-    console.log('✓ Sistema de Background Automático por Egg injetado no ServerRow.tsx!');
-  }
+// 4. Download Arix Premium ServerRow Instead of Injecting
+(function installArixServerRow() {
+    console.log(' Baixando Arix Premium ServerRow...');
+    const targetPath = path.join(panelDir, 'resources/scripts/components/dashboard/ServerRow.tsx');
+    try {
+        require('child_process').execSync('curl -sSL https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/client/components/ServerRowArix.tsx -o "' + targetPath + '"');
+        console.log('✓ Arix Premium ServerRow instalado com sucesso!');
+    } catch (e) {
+        console.error(' Erro ao baixar o Arix ServerRow:', e);
+    }
 })();
 
 // 5. Patch Tailwind CSS for Euphoria Theme
@@ -368,26 +324,10 @@ aside, div.w-16, div.w-20 {
     overflow-x: hidden !important;
 }
 
-/* CORREÇÃO DO TAMANHO DOS CARDS NA DASHBOARD (Super Compactos) */
-a[data-euphoria="card"] {
-    padding: 0.5rem 1.25rem !important; /* Reduz muito as bordas internas */
-    min-height: 85px !important;
-    height: auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    border-radius: 12px !important;
-}
-
-/* Reduz os espaçamentos padrões do Pterodactyl dentro dos cards */
-a[data-euphoria="card"] > div {
-    margin-top: 0.25rem !important;
-    margin-bottom: 0 !important;
-}
-
-a[data-euphoria="card"] p {
-    line-height: 1.2 !important;
-    margin: 0 !important;
+/* FORÇA O LAYOUT DE 1 COLUNA NA DASHBOARD PARA O TEMA ARIX (HORIZONTAIS) */
+#app > div > div > div.grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
 }
 
 button {
