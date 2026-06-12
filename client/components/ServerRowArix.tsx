@@ -135,12 +135,12 @@ export default ({ server, className }: { server: Server; className?: string }) =
                 position: 'relative',
                 width: '100%', maxWidth: 1200, height: 160,
                 display: 'flex', flexDirection: 'row', alignItems: 'center',
+                margin: '0 auto 12px auto',
                 gap: 24, padding: '0 20px',
                 background: 'rgba(22, 26, 24, 0.85)',
                 border: '1px solid rgba(255,255,255,0.06)',
                 borderRadius: 16,
                 backdropFilter: 'blur(10px)',
-                marginBottom: 12,
                 transition: 'border-color 0.3s ease',
                 overflow: 'hidden',
             }}
