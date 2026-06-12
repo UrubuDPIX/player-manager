@@ -38,7 +38,7 @@ const LayoutManager = () => {
                 el.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
                 el.style.setProperty('gap', '0.75rem', 'important');
             } else if (mode === 'compact') {
-                el.style.setProperty('grid-template-columns', 'repeat(auto-fill, minmax(220px, 1fr))', 'important');
+                el.style.setProperty('grid-template-columns', 'repeat(5, minmax(0, 1fr))', 'important');
                 el.style.setProperty('gap', '0.75rem', 'important');
             }
         });
@@ -51,7 +51,7 @@ const LayoutManager = () => {
             } else if (mode === 'grid') {
                 gen.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
             } else if (mode === 'compact') {
-                gen.style.setProperty('grid-template-columns', 'repeat(auto-fill, minmax(220px, 1fr))', 'important');
+                gen.style.setProperty('grid-template-columns', 'repeat(5, minmax(0, 1fr))', 'important');
             }
         }
     };
