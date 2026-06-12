@@ -220,10 +220,10 @@ export default ({ server, className }: { server: Server; className?: string }) =
                 transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
             }}
         >
-            {/* Top Banner: 132px */}
+            {/* Top Banner: 100px */}
             <div style={{
                 position: 'relative',
-                width: '100%', height: 132, flexShrink: 0,
+                width: '100%', height: 100, flexShrink: 0,
                 backgroundImage: `url(${eggBgUrl})`,
                 backgroundSize: 'cover', backgroundPosition: 'center',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -246,54 +246,54 @@ export default ({ server, className }: { server: Server; className?: string }) =
 
                 <StatusPill $status={stats?.status}>{stats?.status || 'OFFLINE'}</StatusPill>
 
-                <h3 style={{ position: 'relative', zIndex: 3, color: '#fff', fontWeight: 900, fontSize: 20, margin: 0, textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>{server.name}</h3>
-                <span style={{ position: 'relative', zIndex: 3, color: '#ccc', fontSize: 11, fontWeight: 600, textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>{eggName}</span>
+                <h3 style={{ position: 'relative', zIndex: 3, color: '#fff', fontWeight: 900, fontSize: 18, margin: 0, textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>{server.name}</h3>
+                <span style={{ position: 'relative', zIndex: 3, color: '#ccc', fontSize: 10, fontWeight: 600, textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>{eggName}</span>
             </div>
 
             {/* Bottom Content */}
-            <div style={{ padding: '16px', display: 'flex', flex: 1, gap: 16 }}>
+            <div style={{ padding: '12px 16px', display: 'flex', flex: 1, gap: 12 }}>
                 {/* Left side: Stats */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#ddd' }}>
-                            <Icon.Cpu size={13} color="#2ecc71" /> Cpu: {cpuPct}%
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#ddd' }}>
+                            <Icon.Cpu size={12} color="#2ecc71" /> Cpu: {cpuPct}%
                         </div>
                         <ProgressBar value={stats?.cpuUsagePercent || 0} max={server.limits.cpu || 200} />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#666', fontWeight: 700, marginTop: 2 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#666', fontWeight: 700, marginTop: 1 }}>
                             <span>0%</span><span>{cpuLimit}</span>
                         </div>
                     </div>
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#ddd' }}>
-                            <Icon.Server size={13} color="#2ecc71" /> Ram: {ramStr}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#ddd' }}>
+                            <Icon.Server size={12} color="#2ecc71" /> Ram: {ramStr}
                         </div>
                         <ProgressBar value={stats?.memoryUsageInBytes || 0} max={server.limits.memory * 1024 * 1024 || 4000000000} />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#666', fontWeight: 700, marginTop: 2 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#666', fontWeight: 700, marginTop: 1 }}>
                             <span>0 GB</span><span>{ramLimit}</span>
                         </div>
                     </div>
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#ddd' }}>
-                            <Icon.HardDrive size={13} color="#2ecc71" /> Disk: {diskStr}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#ddd' }}>
+                            <Icon.HardDrive size={12} color="#2ecc71" /> Disk: {diskStr}
                         </div>
                         <ProgressBar value={stats?.diskUsageInBytes || 0} max={server.limits.disk * 1024 * 1024 || 10000000000} />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#666', fontWeight: 700, marginTop: 2 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#666', fontWeight: 700, marginTop: 1 }}>
                             <span>0 GB</span><span>{diskLimit}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Right side: Actions */}
-                <div style={{ flex: '0 0 160px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#1a201c', border: '1px solid #2c3530', borderRadius: 999, padding: '6px 12px', width: '100%', justifyContent: 'center' }}>
-                        <Icon.Globe size={11} color="#2ecc71" />
-                        <span style={{ color: '#bbb', fontSize: 10, fontFamily: 'monospace' }}>{alloc}</span>
+                <div style={{ flex: '0 0 140px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#1a201c', border: '1px solid #2c3530', borderRadius: 999, padding: '4px 8px', width: '100%', justifyContent: 'center' }}>
+                        <Icon.Globe size={10} color="#2ecc71" />
+                        <span style={{ color: '#bbb', fontSize: 9, fontFamily: 'monospace' }}>{alloc}</span>
                     </span>
-                    <div style={{ display: 'flex', gap: 6, marginTop: 'auto' }}>
-                        <button onClick={(e) => { e.preventDefault(); sendPower('start'); }} style={{ flex: 1, padding: '6px 0', borderRadius: 999, border: '1px solid #2ecc71', background: 'transparent', color: '#2ecc71', fontSize: 10, fontWeight: 800, cursor: 'pointer' }}>▶ START</button>
-                        <button onClick={(e) => { e.preventDefault(); sendPower('restart'); }} style={{ flex: 1, padding: '6px 0', borderRadius: 999, border: '1px solid #2ecc71', background: 'transparent', color: '#2ecc71', fontSize: 10, fontWeight: 800, cursor: 'pointer' }}>↻ RESTART</button>
+                    <div style={{ display: 'flex', gap: 4, marginTop: 'auto' }}>
+                        <button onClick={(e) => { e.preventDefault(); sendPower('start'); }} style={{ flex: 1, padding: '5px 0', borderRadius: 999, border: '1px solid #2ecc71', background: 'transparent', color: '#2ecc71', fontSize: 9, fontWeight: 800, cursor: 'pointer' }}>▶ START</button>
+                        <button onClick={(e) => { e.preventDefault(); sendPower('restart'); }} style={{ flex: 1, padding: '5px 0', borderRadius: 999, border: '1px solid #2ecc71', background: 'transparent', color: '#2ecc71', fontSize: 9, fontWeight: 800, cursor: 'pointer' }}>↻ RESTART</button>
                     </div>
-                    <Link to={`/server/${server.id}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px 0', borderRadius: 10, background: 'linear-gradient(135deg, #27ae60, #2ecc71)', color: '#0d120f', fontSize: 12, fontWeight: 800, textDecoration: 'none' }}>Manage Server</Link>
+                    <Link to={`/server/${server.id}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px 0', borderRadius: 8, background: 'linear-gradient(135deg, #27ae60, #2ecc71)', color: '#0d120f', fontSize: 11, fontWeight: 800, textDecoration: 'none' }}>Manage Server</Link>
                 </div>
             </div>
         </div>
