@@ -336,9 +336,7 @@ const panelDir = process.argv[2];
     const themeCss = `
 /* === EUPHORIA THEME OVERRIDES === */
 
-/* Truque de Mestre: Reduz o tamanho base da fonte. 
-   Como o Tailwind usa 'rem' para TUDO (paddings, margins, alturas, larguras), 
-   isso encolhe o painel inteiro proporcionalmente, deixando ele identico ao Euphoria! */
+/* Escala global */
 html {
     font-size: 14px !important;
 }
@@ -360,7 +358,7 @@ body::before {
     z-index: -1;
 }
 
-/* Aplica o efeito de Glassmorphism nas Sidebars, Navbars e modais */
+/* Aplica o efeito de Glassmorphism */
 .bg-neutral-900, .bg-neutral-800, .bg-gray-900, .bg-gray-800, .bg-gray-700 {
     background-color: rgba(15, 15, 20, 0.45) !important;
     backdrop-filter: blur(12px) !important;
@@ -368,10 +366,38 @@ body::before {
     border-color: rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Correção para os botões do final da Sidebar (Admin, Sair) não sobreporem */
-div.flex.flex-col.justify-between {
-    min-height: 100vh;
-    padding-bottom: 2rem !important;
+/* CORREÇÃO DA SIDEBAR (Barra Lateral) */
+div.w-16, div.w-20, nav, aside {
+    overflow-y: auto !important; /* Permite rolar se faltar espaço */
+    overflow-x: hidden !important;
+}
+div.w-16 > div, div.w-20 > div, nav > div {
+    gap: 0.25rem !important; /* Aproxima os botões */
+    margin-bottom: 0.25rem !important;
+    padding-bottom: 0 !important;
+}
+
+/* CORREÇÃO DO TAMANHO DOS CARDS (Super Compactos) */
+div[class*="ServerRow"] {
+    padding: 0.5rem 1rem !important; /* Reduz muito as bordas internas */
+    min-height: auto !important;
+    gap: 0.25rem !important;
+}
+
+/* Reduz os espaçamentos gigantes padrões do Pterodactyl dentro dos cards */
+div[class*="ServerRow"] .mt-4, 
+div[class*="ServerRow"] .mt-5, 
+div[class*="ServerRow"] .mt-6 {
+    margin-top: 0.25rem !important;
+}
+
+div[class*="ServerRow"] .mb-4, 
+div[class*="ServerRow"] .mb-2 {
+    margin-bottom: 0 !important;
+}
+
+div[class*="ServerRow"] p {
+    line-height: 1.1 !important;
 }
 
 button {
