@@ -34,7 +34,6 @@ const ArixCard = styled.div<{ $bg: string }>`
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
-        border: 2px solid #e11d48; /* Red border from image */
         ${props => props.$bg && `
             background-image: linear-gradient(to top, rgba(15,17,16,1) 0%, rgba(15,17,16,0.3) 100%), ${props.$bg};
             background-size: cover;
