@@ -128,9 +128,16 @@ const ServerConsoleHyper = () => {
             }, 50);
         });
         observer.observe(el);
+
+        // Force resize after initial grid animation settles
+        const t1 = setTimeout(() => window.dispatchEvent(new Event('resize')), 500);
+        const t2 = setTimeout(() => window.dispatchEvent(new Event('resize')), 1500);
+
         return () => {
             observer.disconnect();
             clearTimeout(timeout);
+            clearTimeout(t1);
+            clearTimeout(t2);
         };
     }, []);
 
@@ -325,9 +332,9 @@ const ServerConsoleHyper = () => {
                     margin={[16, 16]}
                 >
                     {/* Console Window */}
-                    <div key="console" className={`relative bg-gray-900 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg ${isEditing ? 'cursor-move' : ''}`}>
-                        {/* Header: fixed height 44px */}
-                        <div className="absolute top-0 left-0 right-0 h-[44px] flex items-center justify-between p-2 bg-gray-800/50 border-b border-gray-700/50 z-10">
+                    <div key="console" className={`flex flex-col h-full bg-gray-900 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg ${isEditing ? 'cursor-move' : ''}`}>
+                        {/* Header: fixed height */}
+                        <div className="shrink-0 flex items-center justify-between p-2 bg-gray-800/50 border-b border-gray-700/50 z-10 h-[44px]">
                             <div className="flex items-center space-x-2">
                                 <span className="flex items-center px-2 py-1 text-xs text-green-400 bg-green-500/10 rounded-full border border-green-500/30">
                                     <Icon.Menu className="w-3 h-3 mr-1" /> Wrap
@@ -344,18 +351,20 @@ const ServerConsoleHyper = () => {
                             </div>
                         </div>
                         
-                        {/* Console Output Area: perfectly bounds the remaining space */}
-                        <div id="hyper-console-wrapper" className="absolute top-[44px] bottom-[56px] left-0 right-0 bg-[#0f0f15] p-2 overflow-hidden">
-                            <Spinner.Suspense>
-                                <Console />
-                            </Spinner.Suspense>
+                        {/* Console Output Area: Bulletproof xterm wrapper */}
+                        <div className="flex-1 relative min-h-0 bg-[#0f0f15]">
+                            <div id="hyper-console-wrapper" className="absolute inset-0 p-2 overflow-hidden">
+                                <Spinner.Suspense>
+                                    <Console />
+                                </Spinner.Suspense>
+                            </div>
                             <button className="absolute bottom-4 left-4 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/50 px-3 py-1 rounded-full text-[10px] font-bold flex items-center z-10 transition">
                                 <Icon.Trash2 className="w-3 h-3 mr-1" /> Clear
                             </button>
                         </div>
                         
-                        {/* Console Input Bar: fixed height 56px */}
-                        <div className="absolute bottom-0 left-0 right-0 h-[56px] flex items-center justify-between bg-gray-900 border-t border-gray-700 p-2 z-20 gap-2">
+                        {/* Console Input Bar: fixed height */}
+                        <div className="shrink-0 flex items-center justify-between bg-gray-900 border-t border-gray-700 p-2 z-20 gap-2 h-[56px]">
                             <div className="flex items-center bg-[#0f0f15] rounded-lg px-3 py-1.5 w-full border border-gray-800 focus-within:border-indigo-500/50 transition h-full">
                                 <Icon.ChevronsRight className="w-4 h-4 text-indigo-400 mr-2 shrink-0" />
                                 <input 
