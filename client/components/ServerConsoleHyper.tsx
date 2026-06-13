@@ -76,23 +76,23 @@ const ServerConsoleHyper = () => {
     const status = ServerContext.useStoreState((state) => state.status.value);
     const [isEditing, setIsEditing] = useState(false);
     
-    // Default Layouts
+    // Default Layouts v2 (Taller widgets to prevent cutoff)
     const defaultLayout = [
-        { i: 'console', x: 0, y: 0, w: 8, h: 4 },
+        { i: 'console', x: 0, y: 0, w: 8, h: 5 },
         { i: 'actions', x: 8, y: 0, w: 4, h: 1 },
-        { i: 'info', x: 8, y: 1, w: 4, h: 1 },
-        { i: 'activity', x: 8, y: 2, w: 4, h: 2 },
-        { i: 'graphs', x: 0, y: 4, w: 12, h: 4 }
+        { i: 'info', x: 8, y: 1, w: 4, h: 2 },
+        { i: 'activity', x: 8, y: 3, w: 4, h: 2 },
+        { i: 'graphs', x: 0, y: 5, w: 12, h: 3 }
     ];
     
     const [layouts, setLayouts] = useState(() => {
-        const saved = localStorage.getItem('hyper_layout_' + server.uuid);
+        const saved = localStorage.getItem('hyper_layout_v2_' + server.uuid);
         return saved ? JSON.parse(saved) : { lg: defaultLayout };
     });
 
     const onLayoutChange = (layout: any, layouts: any) => {
         setLayouts(layouts);
-        localStorage.setItem('hyper_layout_' + server.uuid, JSON.stringify(layouts));
+        localStorage.setItem('hyper_layout_v2_' + server.uuid, JSON.stringify(layouts));
     };
 
     // Fetch stats for the header widget
@@ -273,8 +273,8 @@ const ServerConsoleHyper = () => {
                     margin={[16, 16]}
                 >
                     {/* Console Window */}
-                    <div key="console" className={`flex flex-col bg-gray-800/80 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg ${isEditing ? 'cursor-move' : ''}`}>
-                    <div className="flex items-center justify-between p-2 bg-gray-900/50 border-b border-gray-700/50">
+                    <div key="console" className={`flex flex-col bg-gray-800/80 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg ${isEditing ? 'cursor-move' : ''} h-full`}>
+                        <div className="flex items-center justify-between p-2 bg-gray-900/50 border-b border-gray-700/50 shrink-0">
                         <div className="flex items-center space-x-2">
                             <span className="flex items-center px-2 py-1 text-xs text-green-400 bg-green-500/10 rounded-full border border-green-500/30">
                                 <Icon.Menu className="w-3 h-3 mr-1" /> Wrap
@@ -289,24 +289,26 @@ const ServerConsoleHyper = () => {
                             <Icon.ExternalLink className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
                             <Icon.Maximize2 className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
                         </div>
-                    </div>
-                    {/* Console Output Area (Styled within Pterodactyl's native Console component) */}
-                    <div className="flex-1 relative min-h-[350px]">
-                        <Spinner.Suspense>
-                            <Console />
-                        </Spinner.Suspense>
-                    </div>
+                        </div>
+                        {/* Console Output Area */}
+                        <div className="flex-1 relative min-h-0 h-full w-full [&>div]:h-full">
+                            <Spinner.Suspense>
+                                <Console />
+                            </Spinner.Suspense>
+                        </div>
                     </div>
 
                     {/* Big Action Buttons */}
-                    <div key="actions" className={`grid grid-cols-2 gap-3 h-full ${isEditing ? 'cursor-move' : ''}`}>
+                    <div key="actions" className={`flex flex-col justify-center h-full ${isEditing ? 'cursor-move' : ''}`}>
+                        <div className="grid grid-cols-2 gap-3 w-full">
                          <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
                             <PowerButtons className="flex space-x-2 w-full [&>button]:flex-1" />
                         </Can>
+                        </div>
                     </div>
 
                     {/* Server Info Chips */}
-                    <div key="info" className={`grid grid-cols-1 gap-3 ${isEditing ? 'cursor-move' : ''}`}>
+                    <div key="info" className={`flex flex-col justify-center space-y-3 h-full ${isEditing ? 'cursor-move' : ''}`}>
                         <div className="flex items-center bg-gray-800/80 border border-gray-700 rounded-lg p-3">
                             <div className="bg-indigo-500/20 p-2 rounded-lg mr-3">
                                 <Icon.Wifi className="w-5 h-5 text-indigo-400" />
@@ -347,14 +349,14 @@ const ServerConsoleHyper = () => {
                             </span>
                             <span className="text-[10px] text-indigo-400 cursor-pointer hover:underline">View all →</span>
                         </div>
-                        <div className="flex-1 overflow-y-auto">
+                        <div className="flex-1 overflow-y-auto min-h-0">
                             <ActivityLogWidget />
                         </div>
                     </div>
 
                     {/* Bottom Graph Cards */}
-                    <div key="graphs" className={`flex-1 ${isEditing ? 'cursor-move' : ''} [&>.grid]:h-full`}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+                    <div key="graphs" className={`flex flex-col h-full ${isEditing ? 'cursor-move' : ''}`}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full [&>div]:bg-gray-800/50 [&>div]:border [&>div]:border-gray-700/50 [&>div]:rounded-xl [&>div]:shadow-lg [&>div]:p-2 [&>div]:backdrop-blur">
                             <Spinner.Suspense>
                                 <StatGraphs />
                             </Spinner.Suspense>
