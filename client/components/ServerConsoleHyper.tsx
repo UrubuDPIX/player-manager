@@ -11,13 +11,14 @@ import PowerButtons from '@/components/server/console/PowerButtons';
 import { Alert } from '@/components/elements/alert';
 import tw, { styled } from 'twin.macro';
 import { bytesToString, ip as formatIp, mbToBytes } from '@/lib/formatters';
-import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
 import * as Icon from 'react-feather';
+import { formatDistanceToNow } from 'date-fns';
 import useSWR from 'swr';
 import http from '@/api/http';
-import { formatDistanceToNow } from 'date-fns';
 
-const StatusIndicator = styled.div<{ $status: ServerPowerState | undefined }>`
+export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
+
+const StatusIndicator = styled.div<{ $status: any }>`
     ${tw`w-2 h-2 rounded-full mr-2`};
     ${(props) => (!props.$status || props.$status === 'offline' ? tw`bg-red-500` : props.$status === 'running' ? tw`bg-green-500` : tw`bg-yellow-500`)};
 `;
@@ -80,12 +81,14 @@ const ServerConsoleHyper = () => {
     const ramLimit = server.limits.memory === 0 ? 0 : server.limits.memory;
     const diskLimit = server.limits.disk === 0 ? 0 : server.limits.disk;
 
-    const cpuPercent = stats ? ((stats.cpuUsage / cpuLimit) * 100).toFixed(2) : '0.00';
-    const ramPercent = stats && ramLimit > 0 ? ((stats.memoryUsageInBytes / mbToBytes(ramLimit)) * 100).toFixed(2) : '0.00';
-    const diskPercent = stats && diskLimit > 0 ? ((stats.diskUsageInBytes / mbToBytes(diskLimit)) * 100).toFixed(2) : '0.00';
+    const anyStats = stats as any;
+    const cpuPercent = anyStats ? ((anyStats.cpuUsage || anyStats.cpuAbsolute || 0) / cpuLimit * 100).toFixed(2) : '0.00';
+    const ramPercent = anyStats && ramLimit > 0 ? ((anyStats.memoryUsageInBytes || anyStats.memoryBytes || 0) / mbToBytes(ramLimit) * 100).toFixed(2) : '0.00';
+    const diskPercent = anyStats && diskLimit > 0 ? ((anyStats.diskUsageInBytes || anyStats.diskBytes || 0) / mbToBytes(diskLimit) * 100).toFixed(2) : '0.00';
 
     const getEggBg = () => {
-        const eggStr = [server.eggName, server.egg_name, server.name, server.description, server.nestName].join(' ').toLowerCase();
+        const srv = server as any;
+        const eggStr = [srv.eggName, srv.egg_name, srv.name, srv.description, srv.nestName].join(' ').toLowerCase();
         if (eggStr.includes('minecraft') || eggStr.includes('java') || eggStr.includes('paper') || eggStr.includes('forge') || eggStr.includes('spigot')) {
             return 'https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/assets/user-minecraft.png';
         }
@@ -137,7 +140,7 @@ const ServerConsoleHyper = () => {
                     <div>
                         <h2 className="text-xl font-bold text-gray-50">{name}</h2>
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-500/20 text-green-400 mb-2 inline-block">
-                            {server.eggName || 'SERVER'}
+                            {(server as any).eggName || 'SERVER'}
                         </span>
                         <div className="flex items-center text-xs text-gray-400 bg-gray-900/50 px-2 py-1 rounded-full border border-gray-700/50 w-max">
                             <Icon.Share2 className="w-3 h-3 mr-1 text-indigo-400" />
@@ -162,7 +165,7 @@ const ServerConsoleHyper = () => {
                     </div>
                     <div>
                         <div className="flex justify-between text-xs mb-1">
-                            <span className="flex items-center text-gray-300"><Icon.HardDrive className="w-3 h-3 mr-1 text-indigo-400" /> Ram : {stats ? bytesToString(stats.memoryUsageInBytes) : '0 MB'}</span>
+                            <span className="flex items-center text-gray-300"><Icon.HardDrive className="w-3 h-3 mr-1 text-indigo-400" /> Ram : {anyStats ? bytesToString(anyStats.memoryUsageInBytes || anyStats.memoryBytes || 0) : '0 MB'}</span>
                         </div>
                         <div className="w-full bg-gray-900 rounded-full h-1.5 border border-gray-700/50 overflow-hidden">
                             <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${Math.min(parseFloat(ramPercent), 100)}%` }} />
@@ -178,7 +181,7 @@ const ServerConsoleHyper = () => {
                 <div className="p-4 flex flex-col justify-between w-full md:w-1/3 z-10">
                     <div>
                         <div className="flex justify-between text-xs mb-1">
-                            <span className="flex items-center text-gray-300"><Icon.Database className="w-3 h-3 mr-1 text-indigo-400" /> DISK : {stats ? bytesToString(stats.diskUsageInBytes) : '0 MB'}</span>
+                            <span className="flex items-center text-gray-300"><Icon.Database className="w-3 h-3 mr-1 text-indigo-400" /> DISK : {anyStats ? bytesToString(anyStats.diskUsageInBytes || anyStats.diskBytes || 0) : '0 MB'}</span>
                             <div className="flex items-center bg-gray-900/80 px-2 py-0.5 rounded-full border border-gray-700">
                                 <StatusIndicator $status={status} />
                                 <span className="text-[10px] uppercase font-bold text-gray-300">{status || 'OFFLINE'}</span>
