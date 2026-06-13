@@ -332,15 +332,15 @@ const ServerConsoleHyper = () => {
                     margin={[16, 16]}
                 >
                     {/* Console Window */}
-                    <div key="console" className={`flex flex-col h-full bg-gray-900 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg ${isEditing ? 'cursor-move' : ''}`}>
+                    <div key="console" className={`flex flex-col h-full bg-[#0f0f15] border border-gray-700/50 rounded-xl overflow-hidden shadow-lg ${isEditing ? 'cursor-move' : ''}`}>
                         {/* Header: fixed height */}
-                        <div className="shrink-0 flex items-center justify-between p-2 bg-gray-800/50 border-b border-gray-700/50 z-10 h-[44px]">
+                        <div className="shrink-0 flex items-center justify-between p-2 bg-[#1a1a24] border-b border-gray-700/50 z-10 h-[44px]">
                             <div className="flex items-center space-x-2">
-                                <span className="flex items-center px-2 py-1 text-xs text-green-400 bg-green-500/10 rounded-full border border-green-500/30">
+                                <span className="flex items-center px-2 py-1 text-xs text-green-400 bg-green-500/10 rounded-full border border-green-500/30 font-semibold">
                                     <Icon.Menu className="w-3 h-3 mr-1" /> Wrap
                                 </span>
-                                <span className="flex items-center px-2 py-1 text-xs text-gray-300 bg-gray-800 rounded-full border border-gray-600">
-                                    - <span className="mx-2">13px</span> +
+                                <span className="flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-800 rounded-full border border-gray-700 font-semibold">
+                                    - <span className="mx-2 text-gray-200">13px</span> +
                                 </span>
                             </div>
                             <div className="flex space-x-2 text-indigo-400">
@@ -351,26 +351,40 @@ const ServerConsoleHyper = () => {
                             </div>
                         </div>
                         
-                        {/* Console Output Area: Bulletproof xterm wrapper */}
-                        <div className="flex-1 relative min-h-0 bg-[#0f0f15] p-2">
-                            <div id="hyper-console-wrapper" className="absolute inset-2 overflow-hidden rounded-md">
+                        {/* Console Output Area: perfectly bounds above the buttons */}
+                        <div className="flex-1 relative min-h-0 bg-[#0f0f15]">
+                            <div id="hyper-console-wrapper" className="absolute inset-x-2 top-2 bottom-0 overflow-hidden">
                                 <Spinner.Suspense>
                                     <Console />
                                 </Spinner.Suspense>
                             </div>
-                            <button className="absolute bottom-4 left-4 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/50 px-3 py-1 rounded-full text-[10px] font-bold flex items-center z-10 transition">
-                                <Icon.Trash2 className="w-3 h-3 mr-1" /> Clear
-                            </button>
+                        </div>
+
+                        {/* Sub-Buttons Row (Clear, History, Upload) */}
+                        <div className="shrink-0 flex items-center justify-between px-2 pb-2 pt-2 z-10">
+                            <div>
+                                <button className="bg-red-500/10 text-red-500 hover:bg-red-500/20 px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider font-bold flex items-center transition">
+                                    <Icon.Trash2 className="w-3.5 h-3.5 mr-1.5" /> Clear
+                                </button>
+                            </div>
+                            <div className="flex space-x-2">
+                                <button className="bg-transparent border border-green-500/40 text-green-500 hover:bg-green-500/10 px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider font-bold flex items-center transition">
+                                    <Icon.Clock className="w-3.5 h-3.5 mr-1.5" /> History
+                                </button>
+                                <button className="bg-transparent border border-green-500/40 text-green-500 hover:bg-green-500/10 px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider font-bold flex items-center transition">
+                                    <Icon.UploadCloud className="w-3.5 h-3.5 mr-1.5" /> Upload Log
+                                </button>
+                            </div>
                         </div>
                         
                         {/* Console Input Bar: fixed height */}
-                        <div className="shrink-0 flex items-center justify-between bg-gray-900 border-t border-gray-700 p-2 z-20 gap-2 h-[56px]">
-                            <div className="flex items-center bg-[#0f0f15] rounded-lg px-3 py-1.5 w-full border border-gray-800 focus-within:border-indigo-500/50 transition h-full">
-                                <Icon.ChevronsRight className="w-4 h-4 text-indigo-400 mr-2 shrink-0" />
+                        <div className="shrink-0 flex items-center justify-between bg-[#1a1a24] border-t border-gray-700/50 p-2 z-20 gap-2 h-[56px]">
+                            <div className="flex-1 flex items-center bg-[#0f0f15] rounded-md px-3 py-1 w-full border border-gray-800 focus-within:border-indigo-500/50 transition h-full">
+                                <Icon.ChevronsRight className="w-4 h-4 text-gray-500 mr-2 shrink-0" />
                                 <input 
                                     type="text" 
                                     placeholder="Type a command..." 
-                                    className="bg-transparent border-none outline-none text-sm text-gray-200 w-full font-mono h-full"
+                                    className="bg-transparent border-none outline-none text-sm text-gray-300 w-full font-mono h-full"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && e.currentTarget.value && instance) {
                                             instance.send('send command', e.currentTarget.value);
@@ -379,17 +393,9 @@ const ServerConsoleHyper = () => {
                                     }}
                                 />
                             </div>
-                            <div className="flex items-center space-x-2 shrink-0 h-full">
-                                <button className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-green-400 text-xs px-3 rounded-md font-semibold transition flex items-center h-full">
-                                    <Icon.Clock className="w-3 h-3 mr-1" /> History
-                                </button>
-                                <button className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-green-400 text-xs px-3 rounded-md font-semibold transition flex items-center h-full">
-                                    <Icon.UploadCloud className="w-3 h-3 mr-1" /> Upload Log
-                                </button>
-                                <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 rounded-md font-bold transition flex items-center h-full">
-                                    <Icon.Send className="w-3 h-3 mr-1" /> Send
-                                </button>
-                            </div>
+                            <button className="bg-[#6c5ce7] hover:bg-[#5b4bc4] text-white px-5 rounded-md text-sm font-bold transition flex items-center h-full shrink-0">
+                                <Icon.Send className="w-4 h-4 mr-2" /> Send
+                            </button>
                         </div>
                     </div>
 
