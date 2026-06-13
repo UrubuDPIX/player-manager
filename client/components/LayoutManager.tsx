@@ -9,43 +9,36 @@ const LayoutManager = () => {
     useEffect(() => {
         localStorage.setItem('arix-layout', layout);
         document.body.setAttribute('data-arix-layout', layout);
-        applyGrid(layout);
     }, [layout]);
 
     useEffect(() => {
         const pteroToggle = document.querySelector('.icon-toggle') as HTMLElement;
         if (pteroToggle) pteroToggle.style.display = 'none';
 
-        // Keep applying in case React re-renders the container
-        const iv = setInterval(() => {
-            applyGrid(localStorage.getItem('arix-layout') || 'row');
-        }, 500);
-        return () => clearInterval(iv);
-    }, []);
-
-    const applyGrid = (mode: string) => {
-        // Encontra a primeira server-row
-        const firstRow = document.querySelector('.server-row');
-        if (!firstRow) return;
-
-        // O pai direto das server-rows é o container que queremos transformar em grid
-        const container = firstRow.parentElement;
-        if (!container) return;
-
-        // Força o display grid no container pai
-        container.style.setProperty('display', 'grid', 'important');
-
-        if (mode === 'row') {
-            container.style.setProperty('grid-template-columns', '1fr', 'important');
-            container.style.setProperty('gap', '0', 'important');
-        } else if (mode === 'grid') {
-            container.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
-            container.style.setProperty('gap', '0.75rem', 'important');
-        } else if (mode === 'compact') {
-            container.style.setProperty('grid-template-columns', 'repeat(5, 1fr)', 'important');
-            container.style.setProperty('gap', '0.75rem', 'important');
+        // Add global styles for the layout using :has selector for instant rendering without shifting
+        if (!document.getElementById('arix-layout-styles')) {
+            const style = document.createElement('style');
+            style.id = 'arix-layout-styles';
+            style.innerHTML = `
+                body[data-arix-layout="row"] div:has(> .server-row) {
+                    display: grid !important;
+                    grid-template-columns: 1fr !important;
+                    gap: 0 !important;
+                }
+                body[data-arix-layout="grid"] div:has(> .server-row) {
+                    display: grid !important;
+                    grid-template-columns: repeat(2, 1fr) !important;
+                    gap: 0.75rem !important;
+                }
+                body[data-arix-layout="compact"] div:has(> .server-row) {
+                    display: grid !important;
+                    grid-template-columns: repeat(5, 1fr) !important;
+                    gap: 0.75rem !important;
+                }
+            `;
+            document.head.appendChild(style);
         }
-    };
+    }, []);
 
     const btnBase: React.CSSProperties = {
         padding: '8px 10px',
