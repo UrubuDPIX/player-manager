@@ -16,6 +16,12 @@ import { formatDistanceToNow } from 'date-fns';
 import useSWR from 'swr';
 import http from '@/api/http';
 import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
+import { Responsive, WidthProvider } from 'react-grid-layout';
+
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
 
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
@@ -39,7 +45,7 @@ const ActivityLogWidget = () => {
             {data.slice(0, 3).map((activity: any, index: number) => (
                 <div key={index} className="flex flex-col bg-gray-800/50 p-3 rounded-lg border border-gray-700/50">
                     <div className="flex items-center text-xs text-gray-300 mb-1">
-                        <Icon.User className="w-3 h-3 mr-1" />
+                        <img src={`https://minotar.net/avatar/${activity.attributes.user?.username || 'Steve'}/16.png`} alt="avatar" className="w-4 h-4 rounded mr-2" />
                         <span className="font-semibold text-gray-100 mr-2">{activity.attributes.user?.username || 'System'}</span>
                         <span className="bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded text-[10px]">
                             {activity.attributes.event}
@@ -66,8 +72,28 @@ const ServerConsoleHyper = () => {
     const eggFeatures = server.eggFeatures;
     const isNodeUnderMaintenance = server.isNodeUnderMaintenance;
     
-    const [stats, setStats] = useState<ServerStats | null>(null);
+    const [stats, setStats] = useState<any>(null);
     const status = ServerContext.useStoreState((state) => state.status.value);
+    const [isEditing, setIsEditing] = useState(false);
+    
+    // Default Layouts
+    const defaultLayout = [
+        { i: 'console', x: 0, y: 0, w: 8, h: 4 },
+        { i: 'actions', x: 8, y: 0, w: 4, h: 1 },
+        { i: 'info', x: 8, y: 1, w: 4, h: 1 },
+        { i: 'activity', x: 8, y: 2, w: 4, h: 2 },
+        { i: 'graphs', x: 0, y: 4, w: 12, h: 4 }
+    ];
+    
+    const [layouts, setLayouts] = useState(() => {
+        const saved = localStorage.getItem('hyper_layout_' + server.uuid);
+        return saved ? JSON.parse(saved) : { lg: defaultLayout };
+    });
+
+    const onLayoutChange = (layout: any, layouts: any) => {
+        setLayouts(layouts);
+        localStorage.setItem('hyper_layout_' + server.uuid, JSON.stringify(layouts));
+    };
 
     // Fetch stats for the header widget
     useEffect(() => {
@@ -83,9 +109,14 @@ const ServerConsoleHyper = () => {
     const diskLimit = server.limits.disk === 0 ? 0 : server.limits.disk;
 
     const anyStats = stats as any;
-    const cpuPercent = anyStats ? ((anyStats.cpuUsage || anyStats.cpuAbsolute || 0) / cpuLimit * 100).toFixed(2) : '0.00';
-    const ramPercent = anyStats && ramLimit > 0 ? ((anyStats.memoryUsageInBytes || anyStats.memoryBytes || 0) / mbToBytes(ramLimit) * 100).toFixed(2) : '0.00';
-    const diskPercent = anyStats && diskLimit > 0 ? ((anyStats.diskUsageInBytes || anyStats.diskBytes || 0) / mbToBytes(diskLimit) * 100).toFixed(2) : '0.00';
+    // Extract values safely, supporting both direct format and nested resources format
+    const cpuRaw = anyStats ? (anyStats.cpuAbsolute ?? anyStats.cpuUsage ?? anyStats.resources?.cpu_absolute ?? 0) : 0;
+    const ramRaw = anyStats ? (anyStats.memoryUsageInBytes ?? anyStats.memoryBytes ?? anyStats.resources?.memory_bytes ?? 0) : 0;
+    const diskRaw = anyStats ? (anyStats.diskUsageInBytes ?? anyStats.diskBytes ?? anyStats.resources?.disk_bytes ?? 0) : 0;
+
+    const cpuPercent = ((cpuRaw) / cpuLimit * 100).toFixed(2);
+    const ramPercent = ramLimit > 0 ? ((ramRaw) / mbToBytes(ramLimit) * 100).toFixed(2) : '0.00';
+    const diskPercent = diskLimit > 0 ? ((diskRaw) / mbToBytes(diskLimit) * 100).toFixed(2) : '0.00';
 
     const getEggBg = () => {
         const srv = server as any;
@@ -166,7 +197,7 @@ const ServerConsoleHyper = () => {
                     </div>
                     <div>
                         <div className="flex justify-between text-xs mb-1">
-                            <span className="flex items-center text-gray-300"><Icon.HardDrive className="w-3 h-3 mr-1 text-indigo-400" /> Ram : {anyStats ? bytesToString(anyStats.memoryUsageInBytes || anyStats.memoryBytes || 0) : '0 MB'}</span>
+                            <span className="flex items-center text-gray-300"><Icon.HardDrive className="w-3 h-3 mr-1 text-indigo-400" /> Ram : {bytesToString(ramRaw)}</span>
                         </div>
                         <div className="w-full bg-gray-900 rounded-full h-1.5 border border-gray-700/50 overflow-hidden">
                             <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${Math.min(parseFloat(ramPercent), 100)}%` }} />
@@ -182,7 +213,7 @@ const ServerConsoleHyper = () => {
                 <div className="p-4 flex flex-col justify-between w-full md:w-1/3 z-10">
                     <div>
                         <div className="flex justify-between text-xs mb-1">
-                            <span className="flex items-center text-gray-300"><Icon.Database className="w-3 h-3 mr-1 text-indigo-400" /> DISK : {anyStats ? bytesToString(anyStats.diskUsageInBytes || anyStats.diskBytes || 0) : '0 MB'}</span>
+                            <span className="flex items-center text-gray-300"><Icon.Database className="w-3 h-3 mr-1 text-indigo-400" /> DISK : {bytesToString(diskRaw)}</span>
                             <div className="flex items-center bg-gray-900/80 px-2 py-0.5 rounded-full border border-gray-700">
                                 <StatusIndicator $status={status} />
                                 <span className="text-[10px] uppercase font-bold text-gray-300">{status || 'OFFLINE'}</span>
@@ -216,11 +247,11 @@ const ServerConsoleHyper = () => {
                     </button>
                 </div>
                 <div className="flex space-x-2">
-                    <button className="flex items-center px-3 py-1.5 text-xs text-green-400 bg-green-500/10 hover:bg-green-500/20 rounded-md border border-green-500/50 transition">
-                        <Icon.Edit2 className="w-3 h-3 mr-1" /> Edit Mode
+                    <button onClick={() => setIsEditing(!isEditing)} className={`flex items-center px-3 py-1.5 text-xs rounded-md border transition ${isEditing ? 'text-white bg-green-500 border-green-400' : 'text-green-400 bg-green-500/10 hover:bg-green-500/20 border-green-500/50'}`}>
+                        <Icon.Edit2 className="w-3 h-3 mr-1" /> {isEditing ? 'Save Layout' : 'Edit Mode'}
                     </button>
-                    <button className="flex items-center px-3 py-1.5 text-xs text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-md border border-indigo-500/50 transition">
-                        <Icon.Layers className="w-3 h-3 mr-1" /> Components
+                    <button onClick={() => setLayouts({ lg: defaultLayout })} className="flex items-center px-3 py-1.5 text-xs text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-md border border-indigo-500/50 transition">
+                        <Icon.RotateCcw className="w-3 h-3 mr-1" /> Reset
                     </button>
                     <button className="flex items-center px-3 py-1.5 text-xs text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 rounded-md border border-purple-500/50 transition">
                         <Icon.Save className="w-3 h-3 mr-1" /> Save As Preset
@@ -229,9 +260,20 @@ const ServerConsoleHyper = () => {
             </div>
 
             {/* Main Console & Widgets Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                {/* Left: Console Window */}
-                <div className="lg:col-span-2 flex flex-col bg-gray-800/80 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg">
+            <div className={isEditing ? '[&>.react-grid-item]:border [&>.react-grid-item]:border-dashed [&>.react-grid-item]:border-purple-500 [&>.react-grid-item]:bg-purple-500/5' : ''}>
+                <ResponsiveGridLayout
+                    className="layout"
+                    layouts={layouts}
+                    onLayoutChange={onLayoutChange}
+                    breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+                    cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                    rowHeight={100}
+                    isDraggable={isEditing}
+                    isResizable={isEditing}
+                    margin={[16, 16]}
+                >
+                    {/* Console Window */}
+                    <div key="console" className={`flex flex-col bg-gray-800/80 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg ${isEditing ? 'cursor-move' : ''}`}>
                     <div className="flex items-center justify-between p-2 bg-gray-900/50 border-b border-gray-700/50">
                         <div className="flex items-center space-x-2">
                             <span className="flex items-center px-2 py-1 text-xs text-green-400 bg-green-500/10 rounded-full border border-green-500/30">
@@ -254,19 +296,17 @@ const ServerConsoleHyper = () => {
                             <Console />
                         </Spinner.Suspense>
                     </div>
-                </div>
+                    </div>
 
-                {/* Right: Info Widgets */}
-                <div className="lg:col-span-1 flex flex-col space-y-4">
-                    {/* Big Action Buttons (Like Hyper) */}
-                    <div className="grid grid-cols-2 gap-3">
+                    {/* Big Action Buttons */}
+                    <div key="actions" className={`grid grid-cols-2 gap-3 h-full ${isEditing ? 'cursor-move' : ''}`}>
                          <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
                             <PowerButtons className="flex space-x-2 w-full [&>button]:flex-1" />
                         </Can>
                     </div>
 
                     {/* Server Info Chips */}
-                    <div className="grid grid-cols-1 gap-3">
+                    <div key="info" className={`grid grid-cols-1 gap-3 ${isEditing ? 'cursor-move' : ''}`}>
                         <div className="flex items-center bg-gray-800/80 border border-gray-700 rounded-lg p-3">
                             <div className="bg-indigo-500/20 p-2 rounded-lg mr-3">
                                 <Icon.Wifi className="w-5 h-5 text-indigo-400" />
@@ -300,25 +340,27 @@ const ServerConsoleHyper = () => {
                     </div>
 
                     {/* Activity Log Widget */}
-                    <div className="bg-gray-800/80 border border-gray-700 rounded-lg overflow-hidden flex-1 flex flex-col">
+                    <div key="activity" className={`bg-gray-800/80 border border-gray-700 rounded-lg overflow-hidden flex flex-col h-full ${isEditing ? 'cursor-move' : ''}`}>
                         <div className="flex justify-between items-center bg-gray-900/50 p-2 border-b border-gray-700/50">
                             <span className="flex items-center text-xs font-bold text-gray-300">
                                 <Icon.Activity className="w-3 h-3 mr-1 text-indigo-400" /> Activity Log
                             </span>
                             <span className="text-[10px] text-indigo-400 cursor-pointer hover:underline">View all →</span>
                         </div>
-                        <div className="flex-1 overflow-y-auto max-h-[250px]">
+                        <div className="flex-1 overflow-y-auto">
                             <ActivityLogWidget />
                         </div>
                     </div>
-                </div>
-            </div>
 
-            {/* Bottom Graph Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Spinner.Suspense>
-                    <StatGraphs />
-                </Spinner.Suspense>
+                    {/* Bottom Graph Cards */}
+                    <div key="graphs" className={`flex-1 ${isEditing ? 'cursor-move' : ''} [&>.grid]:h-full`}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+                            <Spinner.Suspense>
+                                <StatGraphs />
+                            </Spinner.Suspense>
+                        </div>
+                    </div>
+                </ResponsiveGridLayout>
             </div>
             
             <Features enabled={eggFeatures} />
