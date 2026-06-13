@@ -352,8 +352,8 @@ const ServerConsoleHyper = () => {
                         </div>
                         
                         {/* Console Output Area: Bulletproof xterm wrapper */}
-                        <div className="flex-1 relative min-h-0 bg-[#0f0f15]">
-                            <div id="hyper-console-wrapper" className="absolute inset-0 p-2 overflow-hidden">
+                        <div className="flex-1 relative min-h-0 bg-[#0f0f15] p-2">
+                            <div id="hyper-console-wrapper" className="absolute inset-2 overflow-hidden rounded-md">
                                 <Spinner.Suspense>
                                     <Console />
                                 </Spinner.Suspense>
