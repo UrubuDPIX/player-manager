@@ -306,58 +306,64 @@ const ServerConsoleHyper = () => {
                     margin={[16, 16]}
                 >
                     {/* Console Window */}
-                    <div key="console" className={`flex flex-col bg-gray-800/80 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg ${isEditing ? 'cursor-move' : ''} h-full`}>
-                        <div className="flex items-center justify-between p-2 bg-gray-900/50 border-b border-gray-700/50 shrink-0">
-                        <div className="flex items-center space-x-2">
-                            <span className="flex items-center px-2 py-1 text-xs text-green-400 bg-green-500/10 rounded-full border border-green-500/30">
-                                <Icon.Menu className="w-3 h-3 mr-1" /> Wrap
-                            </span>
-                            <span className="flex items-center px-2 py-1 text-xs text-gray-300 bg-gray-800 rounded-full border border-gray-600">
-                                - <span className="mx-2">13px</span> +
-                            </span>
-                        </div>
-                        <div className="flex space-x-2 text-indigo-400">
-                            <Icon.Square className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
-                            <Icon.Copy className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
-                            <Icon.ExternalLink className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
-                            <Icon.Maximize2 className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
-                        </div>
-                        </div>
-                        {/* Console Output Area */}
-                        <div className="flex flex-col flex-1 relative min-h-0 bg-[#0f0f15] p-2 overflow-hidden">
-                            <Spinner.Suspense>
-                                <Console />
-                            </Spinner.Suspense>
-                            <button className="absolute bottom-4 left-4 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/50 px-3 py-1 rounded-full text-[10px] font-bold flex items-center z-10 transition">
-                                <Icon.Trash2 className="w-3 h-3 mr-1" /> Clear
-                            </button>
-                        </div>
-                        {/* Console Input Bar */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-gray-900/80 border-t border-gray-700 p-2 shrink-0 z-20 gap-2">
-                            <div className="flex items-center bg-[#0f0f15] rounded-lg px-3 py-2 w-full border border-gray-800 focus-within:border-indigo-500/50 transition">
-                                <Icon.ChevronsRight className="w-4 h-4 text-indigo-400 mr-2" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Type a command..." 
-                                    className="bg-transparent border-none outline-none text-sm text-gray-200 w-full font-mono"
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && e.currentTarget.value && instance) {
-                                            instance.send('send command', e.currentTarget.value);
-                                            e.currentTarget.value = '';
-                                        }
-                                    }}
-                                />
+                    <div key="console" className={`relative ${isEditing ? 'cursor-move' : ''}`}>
+                        <div className="absolute inset-0 flex flex-col bg-gray-900 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg">
+                            <div className="flex items-center justify-between p-2 bg-gray-800/50 border-b border-gray-700/50 shrink-0">
+                                <div className="flex items-center space-x-2">
+                                    <span className="flex items-center px-2 py-1 text-xs text-green-400 bg-green-500/10 rounded-full border border-green-500/30">
+                                        <Icon.Menu className="w-3 h-3 mr-1" /> Wrap
+                                    </span>
+                                    <span className="flex items-center px-2 py-1 text-xs text-gray-300 bg-gray-800 rounded-full border border-gray-600">
+                                        - <span className="mx-2">13px</span> +
+                                    </span>
+                                </div>
+                                <div className="flex space-x-2 text-indigo-400">
+                                    <Icon.Square className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
+                                    <Icon.Square className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
+                                    <Icon.Square className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
+                                    <Icon.Maximize2 className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
+                                </div>
                             </div>
-                            <div className="flex items-center space-x-2 shrink-0">
-                                <button className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-green-400 text-xs px-3 py-2 rounded-md font-semibold transition flex items-center">
-                                    <Icon.Clock className="w-3 h-3 mr-1" /> History
+                            
+                            {/* Console Output Area */}
+                            <div className="flex-1 relative bg-[#0f0f15]">
+                                <div className="absolute top-2 left-2 right-2 bottom-2">
+                                    <Spinner.Suspense>
+                                        <Console />
+                                    </Spinner.Suspense>
+                                </div>
+                                <button className="absolute bottom-4 left-4 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/50 px-3 py-1 rounded-full text-[10px] font-bold flex items-center z-10 transition">
+                                    <Icon.Trash2 className="w-3 h-3 mr-1" /> Clear
                                 </button>
-                                <button className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-green-400 text-xs px-3 py-2 rounded-md font-semibold transition flex items-center">
-                                    <Icon.UploadCloud className="w-3 h-3 mr-1" /> Upload Log
-                                </button>
-                                <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-md font-bold transition flex items-center">
-                                    <Icon.Send className="w-3 h-3 mr-1" /> Send
-                                </button>
+                            </div>
+                            
+                            {/* Console Input Bar */}
+                            <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between bg-gray-900/80 border-t border-gray-700 p-2 z-20 gap-2">
+                                <div className="flex items-center bg-[#0f0f15] rounded-lg px-3 py-2 w-full border border-gray-800 focus-within:border-indigo-500/50 transition">
+                                    <Icon.ChevronsRight className="w-4 h-4 text-indigo-400 mr-2" />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Type a command..." 
+                                        className="bg-transparent border-none outline-none text-sm text-gray-200 w-full font-mono"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && e.currentTarget.value && instance) {
+                                                instance.send('send command', e.currentTarget.value);
+                                                e.currentTarget.value = '';
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <div className="flex items-center space-x-2 shrink-0">
+                                    <button className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-green-400 text-xs px-3 py-2 rounded-md font-semibold transition flex items-center">
+                                        <Icon.Clock className="w-3 h-3 mr-1" /> History
+                                    </button>
+                                    <button className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-green-400 text-xs px-3 py-2 rounded-md font-semibold transition flex items-center">
+                                        <Icon.UploadCloud className="w-3 h-3 mr-1" /> Upload Log
+                                    </button>
+                                    <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-md font-bold transition flex items-center">
+                                        <Icon.Send className="w-3 h-3 mr-1" /> Send
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
