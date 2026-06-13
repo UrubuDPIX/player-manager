@@ -79,17 +79,19 @@ const ServerConsoleHyper = () => {
     const [isMaximized, setIsMaximized] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
     
-    // Default Layouts v2 (Taller widgets to prevent cutoff)
+    const LAYOUT_VERSION = 'v5';
+
+    // Default Layouts v5 (Double resolution: rowHeight 50)
     const defaultLayout = [
-        { i: 'console', x: 0, y: 0, w: 8, h: 5 },
+        { i: 'console', x: 0, y: 0, w: 8, h: 8 },
         { i: 'actions', x: 8, y: 0, w: 4, h: 1 },
-        { i: 'info', x: 8, y: 1, w: 4, h: 2 },
-        { i: 'activity', x: 8, y: 3, w: 4, h: 2 },
-        { i: 'graphs', x: 0, y: 5, w: 12, h: 3 }
+        { i: 'info', x: 8, y: 1, w: 4, h: 3 },
+        { i: 'activity', x: 8, y: 4, w: 4, h: 4 },
+        { i: 'graphs', x: 0, y: 8, w: 12, h: 4 }
     ];
     
     const [layouts, setLayouts] = useState(() => {
-        const saved = localStorage.getItem('hyper_layout_v2_' + server.uuid);
+        const saved = localStorage.getItem('hyper_layout_' + LAYOUT_VERSION + '_' + server.uuid);
         return saved ? JSON.parse(saved) : { lg: defaultLayout };
     });
 
@@ -298,7 +300,7 @@ const ServerConsoleHyper = () => {
                     onLayoutChange={onLayoutChange}
                     breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
                     cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-                    rowHeight={100}
+                    rowHeight={50}
                     isDraggable={isEditing}
                     isResizable={isEditing}
                     margin={[16, 16]}
