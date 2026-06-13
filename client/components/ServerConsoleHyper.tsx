@@ -129,15 +129,17 @@ const ServerConsoleHyper = () => {
         });
         observer.observe(el);
 
-        // Force resize after initial grid animation settles
-        const t1 = setTimeout(() => window.dispatchEvent(new Event('resize')), 500);
-        const t2 = setTimeout(() => window.dispatchEvent(new Event('resize')), 1500);
+        // Force resize multiple times during initial load to account for 
+        // late font loading (which changes line height and breaks xterm row calc) 
+        // and delayed grid layout animations.
+        const intervals = [500, 1000, 2000, 3000, 5000].map(ms => 
+            setTimeout(() => window.dispatchEvent(new Event('resize')), ms)
+        );
 
         return () => {
             observer.disconnect();
             clearTimeout(timeout);
-            clearTimeout(t1);
-            clearTimeout(t2);
+            intervals.forEach(clearTimeout);
         };
     }, []);
 
@@ -353,7 +355,7 @@ const ServerConsoleHyper = () => {
                         
                         {/* Console Output Area: perfectly bounds above the buttons */}
                         <div className="flex-1 relative min-h-0 bg-[#0f0f15]">
-                            <div id="hyper-console-wrapper" className="absolute inset-x-2 top-2 bottom-0 overflow-hidden">
+                            <div id="hyper-console-wrapper" className="absolute inset-x-2 top-2 bottom-2 overflow-hidden">
                                 <Spinner.Suspense>
                                     <Console />
                                 </Spinner.Suspense>
