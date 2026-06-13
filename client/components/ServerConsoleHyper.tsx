@@ -305,10 +305,32 @@ const ServerConsoleHyper = () => {
                         </div>
                         </div>
                         {/* Console Output Area */}
-                        <div className="flex-1 relative min-h-0 h-full w-full [&>div]:h-full">
-                            <Spinner.Suspense>
-                                <Console />
-                            </Spinner.Suspense>
+                        <div className="flex-1 relative bg-[#0f0f15]">
+                            <div className="absolute inset-0 p-2 [&>div]:h-full [&>div>div]:h-full">
+                                <Spinner.Suspense>
+                                    <Console />
+                                </Spinner.Suspense>
+                            </div>
+                        </div>
+                        {/* Console Input Bar */}
+                        <div className="flex items-center bg-gray-900/80 border-t border-gray-700 p-2 shrink-0">
+                            <div className="flex items-center bg-[#0f0f15] rounded-lg px-3 py-2 w-full border border-gray-800 focus-within:border-indigo-500/50 transition">
+                                <Icon.ChevronsRight className="w-4 h-4 text-indigo-400 mr-2" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Type a command..." 
+                                    className="bg-transparent border-none outline-none text-sm text-gray-200 w-full font-mono"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && e.currentTarget.value && instance) {
+                                            instance.send('send command', e.currentTarget.value);
+                                            e.currentTarget.value = '';
+                                        }
+                                    }}
+                                />
+                                <button className="ml-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-1.5 rounded-md font-bold transition flex items-center">
+                                    <Icon.Send className="w-3 h-3 mr-1" /> Send
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -363,8 +385,44 @@ const ServerConsoleHyper = () => {
                             </span>
                             <span className="text-[10px] text-indigo-400 cursor-pointer hover:underline">View all →</span>
                         </div>
-                        <div className="flex-1 overflow-y-auto min-h-0">
-                            <ActivityLogWidget />
+                        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                            <div className="flex flex-col relative pl-4 space-y-4">
+                                {/* Vertical Timeline Line */}
+                                <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gray-700/50"></div>
+                                
+                                {data?.slice(0, 15).map((activity: any, index: number) => (
+                                    <div key={index} className="relative flex items-start group">
+                                        {/* Avatar overlapping the line */}
+                                        <img 
+                                            src={`https://minotar.net/avatar/${activity.attributes.user?.username || 'Steve'}/32.png`} 
+                                            alt="avatar" 
+                                            className="absolute -left-[9px] top-1 w-6 h-6 rounded bg-gray-900 border-2 border-gray-800 z-10 group-hover:border-indigo-500 transition-colors"
+                                        />
+                                        {/* Content Box */}
+                                        <div className="flex-1 bg-gray-900/50 border border-gray-700/50 rounded-lg p-3 ml-6 shadow-sm hover:border-gray-600 transition-colors">
+                                            <div className="flex items-center space-x-2 mb-1">
+                                                <span className="font-semibold text-gray-200 text-sm">{activity.attributes.user?.username || 'System'}</span>
+                                                <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full text-[10px] font-mono">
+                                                    {activity.attributes.event}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-gray-400 mt-1.5">
+                                                {/* Parse Jexactyl activity properties */}
+                                                {activity.attributes.properties?.desc ? activity.attributes.properties.desc : 
+                                                 activity.attributes.event.startsWith('server.file') ? `Modified files on the server` :
+                                                 activity.attributes.event.startsWith('server.power') ? `Changed server power state` : 
+                                                 'Performed an action'}
+                                            </p>
+                                            <p className="text-[10px] text-gray-500 mt-2 font-medium">
+                                                {formatDistanceToNow(new Date(activity.attributes.timestamp), { addSuffix: true })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                                {(!data || data.length === 0) && (
+                                    <div className="text-center text-gray-500 text-xs py-4">No activity logs found.</div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
