@@ -324,12 +324,10 @@ const ServerConsoleHyper = () => {
                         </div>
                         </div>
                         {/* Console Output Area */}
-                        <div className="flex-1 relative min-h-0 bg-[#0f0f15]">
-                            <div className="absolute inset-0 p-2 [&>div]:h-full [&>div>div]:h-full">
-                                <Spinner.Suspense>
-                                    <Console />
-                                </Spinner.Suspense>
-                            </div>
+                        <div className="flex flex-col flex-1 relative min-h-0 bg-[#0f0f15] p-2 overflow-hidden">
+                            <Spinner.Suspense>
+                                <Console />
+                            </Spinner.Suspense>
                             <button className="absolute bottom-4 left-4 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/50 px-3 py-1 rounded-full text-[10px] font-bold flex items-center z-10 transition">
                                 <Icon.Trash2 className="w-3 h-3 mr-1" /> Clear
                             </button>
