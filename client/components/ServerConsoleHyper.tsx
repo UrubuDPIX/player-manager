@@ -98,11 +98,11 @@ const ServerConsoleHyper = () => {
     
     // Default Layouts v2 (Taller widgets to prevent cutoff)
     const defaultLayout = [
-        { i: 'console', x: 0, y: 0, w: 8, h: 5 },
+        { i: 'console', x: 0, y: 0, w: 8, h: 6 },
         { i: 'actions', x: 8, y: 0, w: 4, h: 1 },
         { i: 'info', x: 8, y: 1, w: 4, h: 2 },
-        { i: 'activity', x: 8, y: 3, w: 4, h: 2 },
-        { i: 'graphs', x: 0, y: 5, w: 12, h: 3 }
+        { i: 'activity', x: 8, y: 3, w: 4, h: 3 },
+        { i: 'graphs', x: 0, y: 6, w: 12, h: 3 }
     ];
     
     const [layouts, setLayouts] = useState(() => {
@@ -326,8 +326,8 @@ const ServerConsoleHyper = () => {
                             </div>
                             
                             {/* Console Output Area */}
-                            <div className="flex-1 relative bg-[#0f0f15]">
-                                <div className="absolute top-2 left-2 right-2 bottom-2">
+                            <div className="relative bg-[#0f0f15] w-full overflow-hidden" style={{ height: 'calc(100% - 115px)' }}>
+                                <div className="absolute inset-0 p-2">
                                     <Spinner.Suspense>
                                         <Console />
                                     </Spinner.Suspense>
@@ -338,7 +338,7 @@ const ServerConsoleHyper = () => {
                             </div>
                             
                             {/* Console Input Bar */}
-                            <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between bg-gray-900/80 border-t border-gray-700 p-2 z-20 gap-2">
+                            <div className="h-[60px] flex items-center justify-between bg-gray-900 border-t border-gray-700 p-2 z-20 gap-2 shrink-0">
                                 <div className="flex items-center bg-[#0f0f15] rounded-lg px-3 py-2 w-full border border-gray-800 focus-within:border-indigo-500/50 transition">
                                     <Icon.ChevronsRight className="w-4 h-4 text-indigo-400 mr-2" />
                                     <input 
