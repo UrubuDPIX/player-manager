@@ -41,43 +41,24 @@ const ActivityLogWidget = () => {
     if (!data) return <div className="p-4 text-center text-gray-400"><Spinner size={'small'} /></div>;
 
     return (
-        <div className="flex flex-col relative space-y-4">
-            {/* Vertical Timeline Line */}
-            <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gray-700/50"></div>
-            
-            {data.slice(0, 15).map((activity: any, index: number) => (
-                <div key={index} className="relative flex items-start group">
-                    {/* Avatar over line */}
-                    <div className="w-6 h-6 rounded border-2 border-gray-800 bg-gray-900 z-10 shrink-0 overflow-hidden mt-1 group-hover:border-indigo-500 transition-colors">
-                        <img 
-                            src={`https://minotar.net/avatar/${activity.attributes.user?.username || 'Steve'}/32.png`} 
-                            alt="avatar" 
-                            className="w-full h-full object-cover"
-                        />
+        <div className="flex flex-col space-y-2 p-2">
+            {data.slice(0, 3).map((activity: any, index: number) => (
+                <div key={index} className="flex flex-col bg-gray-800/50 p-3 rounded-lg border border-gray-700/50">
+                    <div className="flex items-center text-xs text-gray-300 mb-1">
+                        <img src={`https://minotar.net/avatar/${activity.attributes.user?.username || 'Steve'}/16.png`} alt="avatar" className="w-4 h-4 rounded mr-2" />
+                        <span className="font-semibold text-gray-100 mr-2">{activity.attributes.user?.username || 'System'}</span>
+                        <span className="bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded text-[10px]">
+                            {activity.attributes.event}
+                        </span>
                     </div>
-                    {/* Content Box */}
-                    <div className="flex-1 bg-gray-900/50 border border-gray-700/50 rounded-lg p-3 ml-3 shadow-sm hover:border-gray-600 transition-colors">
-                        <div className="flex items-center space-x-2 mb-1">
-                            <span className="font-semibold text-gray-200 text-sm">{activity.attributes.user?.username || 'System'}</span>
-                            <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full text-[10px] font-mono">
-                                {activity.attributes.event}
-                            </span>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-1.5 line-clamp-2">
-                            {activity.attributes.properties?.desc ? activity.attributes.properties.desc : 
-                             activity.attributes.event.startsWith('server.file') ? `Modified files on the server` :
-                             activity.attributes.event.startsWith('server.power') ? `Changed server power state` : 
-                             'Performed an action'}
-                        </p>
-                        <p className="text-[10px] text-gray-500 mt-2 font-medium">
-                            {formatDistanceToNow(new Date(activity.attributes.timestamp), { addSuffix: true })}
-                        </p>
-                    </div>
+                    <p className="text-sm text-gray-400 mt-1 line-clamp-1">
+                        {activity.attributes.properties?.useragent || 'No details'}
+                    </p>
+                    <span className="text-[10px] text-gray-500 mt-1">
+                        {formatDistanceToNow(new Date(activity.attributes.timestamp), { addSuffix: true })}
+                    </span>
                 </div>
             ))}
-            {(data.length === 0) && (
-                <div className="text-center text-gray-500 text-xs py-4">No activity logs found.</div>
-            )}
         </div>
     );
 };
@@ -98,50 +79,22 @@ const ServerConsoleHyper = () => {
     
     // Default Layouts v2 (Taller widgets to prevent cutoff)
     const defaultLayout = [
-        { i: 'console', x: 0, y: 0, w: 8, h: 6 },
+        { i: 'console', x: 0, y: 0, w: 8, h: 5 },
         { i: 'actions', x: 8, y: 0, w: 4, h: 1 },
         { i: 'info', x: 8, y: 1, w: 4, h: 2 },
-        { i: 'activity', x: 8, y: 3, w: 4, h: 3 },
-        { i: 'graphs', x: 0, y: 6, w: 12, h: 3 }
+        { i: 'activity', x: 8, y: 3, w: 4, h: 2 },
+        { i: 'graphs', x: 0, y: 5, w: 12, h: 3 }
     ];
     
     const [layouts, setLayouts] = useState(() => {
-        const saved = localStorage.getItem('hyper_layout_v3_' + server.uuid);
+        const saved = localStorage.getItem('hyper_layout_v2_' + server.uuid);
         return saved ? JSON.parse(saved) : { lg: defaultLayout };
     });
 
     const onLayoutChange = (layout: any, layouts: any) => {
         setLayouts(layouts);
-        localStorage.setItem('hyper_layout_v3_' + server.uuid, JSON.stringify(layouts));
+        localStorage.setItem('hyper_layout_v2_' + server.uuid, JSON.stringify(layouts));
     };
-
-    // Hack to force xterm.js to resize when the grid item is resized
-    // Pterodactyl natively only listens to window resize events for xterm.
-    useEffect(() => {
-        const el = document.getElementById('hyper-console-wrapper');
-        if (!el) return;
-        let timeout: NodeJS.Timeout;
-        const observer = new ResizeObserver(() => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                window.dispatchEvent(new Event('resize'));
-            }, 50);
-        });
-        observer.observe(el);
-
-        // Force resize multiple times during initial load to account for 
-        // late font loading (which changes line height and breaks xterm row calc) 
-        // and delayed grid layout animations.
-        const intervals = [500, 1000, 2000, 3000, 5000].map(ms => 
-            setTimeout(() => window.dispatchEvent(new Event('resize')), ms)
-        );
-
-        return () => {
-            observer.disconnect();
-            clearTimeout(timeout);
-            intervals.forEach(clearTimeout);
-        };
-    }, []);
 
     // Listen to real-time stats via WebSocket
     useEffect(() => {
@@ -334,78 +287,36 @@ const ServerConsoleHyper = () => {
                     margin={[16, 16]}
                 >
                     {/* Console Window */}
-                    <div key="console" className={`flex flex-col h-full bg-[#0f0f15] border border-gray-700/50 rounded-xl overflow-hidden shadow-lg ${isEditing ? 'cursor-move' : ''}`}>
-                        {/* Header: fixed height */}
-                        <div className="shrink-0 flex items-center justify-between p-2 bg-[#1a1a24] border-b border-gray-700/50 z-10 h-[44px]">
-                            <div className="flex items-center space-x-2">
-                                <span className="flex items-center px-2 py-1 text-xs text-green-400 bg-green-500/10 rounded-full border border-green-500/30 font-semibold">
-                                    <Icon.Menu className="w-3 h-3 mr-1" /> Wrap
-                                </span>
-                                <span className="flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-800 rounded-full border border-gray-700 font-semibold">
-                                    - <span className="mx-2 text-gray-200">13px</span> +
-                                </span>
-                            </div>
-                            <div className="flex space-x-2 text-indigo-400">
-                                <Icon.Square className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
-                                <Icon.Square className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
-                                <Icon.Square className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
-                                <Icon.Maximize2 className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
-                            </div>
+                    <div key="console" className={`flex flex-col bg-gray-800/80 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg ${isEditing ? 'cursor-move' : ''} h-full`}>
+                        <div className="flex items-center justify-between p-2 bg-gray-900/50 border-b border-gray-700/50 shrink-0">
+                        <div className="flex items-center space-x-2">
+                            <span className="flex items-center px-2 py-1 text-xs text-green-400 bg-green-500/10 rounded-full border border-green-500/30">
+                                <Icon.Menu className="w-3 h-3 mr-1" /> Wrap
+                            </span>
+                            <span className="flex items-center px-2 py-1 text-xs text-gray-300 bg-gray-800 rounded-full border border-gray-600">
+                                - <span className="mx-2">13px</span> +
+                            </span>
                         </div>
-                        
-                        {/* Console Output Area: perfectly bounds above the buttons */}
-                        <div className="flex-1 relative min-h-0 bg-[#0f0f15]">
-                            <div id="hyper-console-wrapper" className="absolute inset-x-2 top-2 bottom-2 overflow-hidden">
-                                <Spinner.Suspense>
-                                    <Console />
-                                </Spinner.Suspense>
-                            </div>
+                        <div className="flex space-x-2 text-indigo-400">
+                            <Icon.Square className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
+                            <Icon.Copy className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
+                            <Icon.ExternalLink className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
+                            <Icon.Maximize2 className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
                         </div>
-
-                        {/* Sub-Buttons Row (Clear, History, Upload) */}
-                        <div className="shrink-0 flex items-center justify-between px-2 pb-2 pt-2 z-10">
-                            <div>
-                                <button className="bg-red-500/10 text-red-500 hover:bg-red-500/20 px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider font-bold flex items-center transition">
-                                    <Icon.Trash2 className="w-3.5 h-3.5 mr-1.5" /> Clear
-                                </button>
-                            </div>
-                            <div className="flex space-x-2">
-                                <button className="bg-transparent border border-green-500/40 text-green-500 hover:bg-green-500/10 px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider font-bold flex items-center transition">
-                                    <Icon.Clock className="w-3.5 h-3.5 mr-1.5" /> History
-                                </button>
-                                <button className="bg-transparent border border-green-500/40 text-green-500 hover:bg-green-500/10 px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider font-bold flex items-center transition">
-                                    <Icon.UploadCloud className="w-3.5 h-3.5 mr-1.5" /> Upload Log
-                                </button>
-                            </div>
                         </div>
-                        
-                        {/* Console Input Bar: fixed height */}
-                        <div className="shrink-0 flex items-center justify-between bg-[#1a1a24] border-t border-gray-700/50 p-2 z-20 gap-2 h-[56px]">
-                            <div className="flex-1 flex items-center bg-[#0f0f15] rounded-md px-3 py-1 w-full border border-gray-800 focus-within:border-indigo-500/50 transition h-full">
-                                <Icon.ChevronsRight className="w-4 h-4 text-gray-500 mr-2 shrink-0" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Type a command..." 
-                                    className="bg-transparent border-none outline-none text-sm text-gray-300 w-full font-mono h-full"
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && e.currentTarget.value && instance) {
-                                            instance.send('send command', e.currentTarget.value);
-                                            e.currentTarget.value = '';
-                                        }
-                                    }}
-                                />
-                            </div>
-                            <button className="bg-[#6c5ce7] hover:bg-[#5b4bc4] text-white px-5 rounded-md text-sm font-bold transition flex items-center h-full shrink-0">
-                                <Icon.Send className="w-4 h-4 mr-2" /> Send
-                            </button>
+                        {/* Console Output Area */}
+                        <div className="flex-1 relative min-h-0 h-full w-full [&>div]:h-full">
+                            <Spinner.Suspense>
+                                <Console />
+                            </Spinner.Suspense>
                         </div>
                     </div>
 
                     {/* Big Action Buttons */}
-                    <div key="actions" className={`flex flex-col justify-center items-center h-full w-full ${isEditing ? 'cursor-move' : ''}`}>
-                        <div className="w-full flex justify-center items-center scale-90 md:scale-100 origin-center [&>div]:flex [&>div]:space-x-3 [&_button]:flex-1 [&_button]:px-6 [&_button]:py-3 [&_button]:text-sm [&_button]:font-semibold [&_button]:shadow-lg hover:[&_button]:scale-105 [&_button]:transition-transform [&_button]:rounded-lg">
+                    <div key="actions" className={`flex flex-col justify-center items-center h-full ${isEditing ? 'cursor-move' : ''}`}>
+                        <div className="w-full max-w-[300px]">
                             <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
-                                <PowerButtons />
+                                <PowerButtons className="flex space-x-2 w-full [&>button]:flex-1 [&>button]:py-2.5 [&>button]:text-sm" />
                             </Can>
                         </div>
                     </div>
@@ -452,7 +363,7 @@ const ServerConsoleHyper = () => {
                             </span>
                             <span className="text-[10px] text-indigo-400 cursor-pointer hover:underline">View all →</span>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar min-h-0">
+                        <div className="flex-1 overflow-y-auto min-h-0">
                             <ActivityLogWidget />
                         </div>
                     </div>
