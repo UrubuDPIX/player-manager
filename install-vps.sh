@@ -356,7 +356,7 @@ build_panel() {
     print_info "Instalando dependências no painel..."
     yarn remove prismarine-nbt pako buffer @types/pako nbt react-grid-layout @types/react-grid-layout 2>/dev/null || true
     npm uninstall prismarine-nbt pako buffer @types/pako nbt react-grid-layout @types/react-grid-layout 2>/dev/null || true
-    yarn add pako buffer react-grid-layout @types/react-grid-layout || npm install pako buffer react-grid-layout @types/react-grid-layout
+    yarn add pako buffer react-grid-layout@1.3.4 @types/react-grid-layout@1.1.3 || npm install pako buffer react-grid-layout@1.3.4 @types/react-grid-layout@1.1.3
 
     print_info "Limpando cache de build antigo..."
     rm -rf public/assets/* 2>/dev/null || true
