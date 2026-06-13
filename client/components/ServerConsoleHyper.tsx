@@ -74,6 +74,7 @@ const ServerConsoleHyper = () => {
     
     const [stats, setStats] = useState<any>(null);
     const status = ServerContext.useStoreState((state) => state.status.value);
+    const instance = ServerContext.useStoreState((state) => state.socket.instance);
     const [isEditing, setIsEditing] = useState(false);
     
     // Default Layouts v2 (Taller widgets to prevent cutoff)
@@ -95,24 +96,37 @@ const ServerConsoleHyper = () => {
         localStorage.setItem('hyper_layout_v2_' + server.uuid, JSON.stringify(layouts));
     };
 
-    // Fetch stats for the header widget
+    // Listen to real-time stats via WebSocket
     useEffect(() => {
-        const interval = setInterval(() => {
-            getServerResourceUsage(server.uuid).then((data: any) => setStats(data)).catch(() => setStats(null));
-        }, 5000);
-        getServerResourceUsage(server.uuid).then((data: any) => setStats(data)).catch(() => setStats(null));
-        return () => clearInterval(interval);
-    }, [server.uuid]);
+        if (!instance) return;
+        
+        const listener = (data: string) => {
+            try {
+                const parsed = JSON.parse(data);
+                setStats(parsed);
+            } catch (e) {
+                // Ignore parse errors
+            }
+        };
+        
+        // Pterodactyl uses 'stats' as the event name
+        instance.addListener('stats', listener);
+        
+        return () => {
+            instance.removeListener('stats', listener);
+        };
+    }, [instance]);
 
     const cpuLimit = server.limits.cpu === 0 ? 100 : server.limits.cpu;
     const ramLimit = server.limits.memory === 0 ? 0 : server.limits.memory;
     const diskLimit = server.limits.disk === 0 ? 0 : server.limits.disk;
 
     const anyStats = stats as any;
-    // Extract values safely, supporting both direct format and nested resources format
-    const cpuRaw = anyStats ? (anyStats.cpuAbsolute ?? anyStats.cpuUsage ?? anyStats.resources?.cpu_absolute ?? 0) : 0;
-    const ramRaw = anyStats ? (anyStats.memoryUsageInBytes ?? anyStats.memoryBytes ?? anyStats.resources?.memory_bytes ?? 0) : 0;
-    const diskRaw = anyStats ? (anyStats.diskUsageInBytes ?? anyStats.diskBytes ?? anyStats.resources?.disk_bytes ?? 0) : 0;
+    
+    // Extract values dynamically to support both Pterodactyl Socket format and API format
+    const cpuRaw = anyStats ? (anyStats.cpu_absolute ?? anyStats.cpuAbsolute ?? anyStats.cpuUsage ?? anyStats.resources?.cpu_absolute ?? 0) : 0;
+    const ramRaw = anyStats ? (anyStats.memory_bytes ?? anyStats.memoryUsageInBytes ?? anyStats.memoryBytes ?? anyStats.resources?.memory_bytes ?? 0) : 0;
+    const diskRaw = anyStats ? (anyStats.disk_bytes ?? anyStats.diskUsageInBytes ?? anyStats.diskBytes ?? anyStats.resources?.disk_bytes ?? 0) : 0;
 
     const cpuPercent = ((cpuRaw) / cpuLimit * 100).toFixed(2);
     const ramPercent = ramLimit > 0 ? ((ramRaw) / mbToBytes(ramLimit) * 100).toFixed(2) : '0.00';
@@ -299,11 +313,11 @@ const ServerConsoleHyper = () => {
                     </div>
 
                     {/* Big Action Buttons */}
-                    <div key="actions" className={`flex flex-col justify-center h-full ${isEditing ? 'cursor-move' : ''}`}>
-                        <div className="grid grid-cols-2 gap-3 w-full">
-                         <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
-                            <PowerButtons className="flex space-x-2 w-full [&>button]:flex-1" />
-                        </Can>
+                    <div key="actions" className={`flex flex-col justify-center items-center h-full ${isEditing ? 'cursor-move' : ''}`}>
+                        <div className="w-full max-w-[300px]">
+                            <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
+                                <PowerButtons className="flex space-x-2 w-full [&>button]:flex-1 [&>button]:py-2.5 [&>button]:text-sm" />
+                            </Can>
                         </div>
                     </div>
 
