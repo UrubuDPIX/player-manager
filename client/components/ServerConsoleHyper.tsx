@@ -106,13 +106,13 @@ const ServerConsoleHyper = () => {
     ];
     
     const [layouts, setLayouts] = useState(() => {
-        const saved = localStorage.getItem('hyper_layout_v2_' + server.uuid);
+        const saved = localStorage.getItem('hyper_layout_v3_' + server.uuid);
         return saved ? JSON.parse(saved) : { lg: defaultLayout };
     });
 
     const onLayoutChange = (layout: any, layouts: any) => {
         setLayouts(layouts);
-        localStorage.setItem('hyper_layout_v2_' + server.uuid, JSON.stringify(layouts));
+        localStorage.setItem('hyper_layout_v3_' + server.uuid, JSON.stringify(layouts));
     };
 
     // Listen to real-time stats via WebSocket
