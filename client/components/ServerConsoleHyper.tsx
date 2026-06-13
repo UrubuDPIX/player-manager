@@ -32,8 +32,8 @@ const StatusIndicator = styled.div<{ $status: any }>`
 
 // Widget components for Activity
 const ActivityLogWidget = () => {
-    const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
-    const { data, error } = useSWR(`/api/client/servers/${uuid}/activity`, async (url) => {
+    const serverId = ServerContext.useStoreState((state) => state.server.data!.id);
+    const { data, error } = useSWR(`/api/client/servers/${serverId}/activity?include=user`, async (url) => {
         const { data } = await http.get(url);
         return data.data; // assuming paginated response
     });
@@ -49,14 +49,14 @@ const ActivityLogWidget = () => {
                 <div key={index} className="relative flex items-start group">
                     {/* Avatar overlapping the line */}
                     <img 
-                        src={`https://minotar.net/avatar/${activity.attributes.user?.username || 'Steve'}/32.png`} 
+                        src={`https://minotar.net/avatar/${activity.attributes.relationships?.user?.attributes?.username || activity.attributes.user?.username || 'Steve'}/32.png`} 
                         alt="avatar" 
                         className="absolute left-[0px] top-1 w-6 h-6 rounded bg-gray-900 border-2 border-gray-800 z-10 group-hover:border-indigo-500 transition-colors"
                     />
                     {/* Content Box */}
                     <div className="flex-1 bg-gray-900/50 border border-gray-700/50 rounded-lg p-3 ml-10 shadow-sm hover:border-gray-600 transition-colors">
                         <div className="flex items-center space-x-2 mb-1">
-                            <span className="font-semibold text-gray-200 text-sm">{activity.attributes.user?.username || 'System'}</span>
+                            <span className="font-semibold text-gray-200 text-sm">{activity.attributes.relationships?.user?.attributes?.username || activity.attributes.user?.username || 'System'}</span>
                             <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full text-[10px] font-mono">
                                 {activity.attributes.event}
                             </span>
