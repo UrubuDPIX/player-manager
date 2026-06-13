@@ -76,6 +76,8 @@ const ServerConsoleHyper = () => {
     const status = ServerContext.useStoreState((state) => state.status.value);
     const instance = ServerContext.useStoreState((state) => state.socket.instance);
     const [isEditing, setIsEditing] = useState(false);
+    const [isMaximized, setIsMaximized] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
     
     // Default Layouts v2 (Taller widgets to prevent cutoff)
     const defaultLayout = [
@@ -116,6 +118,21 @@ const ServerConsoleHyper = () => {
             instance.removeListener('stats', listener);
         };
     }, [instance]);
+
+    const handleCopy = () => {
+        const rows = document.querySelectorAll('.xterm-rows > div');
+        let text = '';
+        rows.forEach(row => {
+            text += row.textContent + '\n';
+        });
+        if (text.trim() === '') {
+            text = 'No visible text to copy.';
+        }
+        navigator.clipboard.writeText(text).then(() => {
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        });
+    };
 
     const cpuLimit = server.limits.cpu === 0 ? 100 : server.limits.cpu;
     const ramLimit = server.limits.memory === 0 ? 0 : server.limits.memory;
@@ -287,22 +304,26 @@ const ServerConsoleHyper = () => {
                     margin={[16, 16]}
                 >
                     {/* Console Window */}
-                    <div key="console" className={`flex flex-col bg-gray-800/80 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg ${isEditing ? 'cursor-move' : ''} h-full`}>
+                    <div key="console" className={`flex flex-col bg-gray-800/80 border border-indigo-500/30 rounded-xl overflow-hidden shadow-lg ${isMaximized ? 'fixed inset-4 z-[9999] shadow-2xl shadow-black h-auto bg-gray-900' : 'h-full'} ${isEditing && !isMaximized ? 'cursor-move' : ''}`}>
                         <div className="flex items-center justify-between p-2 bg-gray-900/50 border-b border-gray-700/50 shrink-0">
-                        <div className="flex items-center space-x-2">
-                            <span className="flex items-center px-2 py-1 text-xs text-green-400 bg-green-500/10 rounded-full border border-green-500/30">
-                                <Icon.Menu className="w-3 h-3 mr-1" /> Wrap
-                            </span>
-                            <span className="flex items-center px-2 py-1 text-xs text-gray-300 bg-gray-800 rounded-full border border-gray-600">
-                                - <span className="mx-2">13px</span> +
-                            </span>
-                        </div>
-                        <div className="flex space-x-2 text-indigo-400">
-                            <Icon.Square className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
-                            <Icon.Copy className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
-                            <Icon.ExternalLink className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
-                            <Icon.Maximize2 className="w-4 h-4 cursor-pointer hover:text-indigo-300" />
-                        </div>
+                            <div className="flex items-center space-x-2">
+                                <span className="flex items-center px-2 py-1 text-xs text-gray-400 font-semibold uppercase tracking-wider">
+                                    <Icon.Terminal className="w-3 h-3 mr-1" /> Terminal
+                                </span>
+                            </div>
+                            <div className="flex space-x-2 text-indigo-400">
+                                {isCopied ? (
+                                    <Icon.Check className="w-4 h-4 text-green-400" />
+                                ) : (
+                                    <Icon.Copy onClick={handleCopy} className="w-4 h-4 cursor-pointer hover:text-indigo-300 transition" title="Copy visible text" />
+                                )}
+                                <Icon.ExternalLink onClick={() => window.open(`/server/${server.id}`, '_blank')} className="w-4 h-4 cursor-pointer hover:text-indigo-300 transition" title="Open in new tab" />
+                                {isMaximized ? (
+                                    <Icon.Minimize2 onClick={() => setIsMaximized(false)} className="w-4 h-4 cursor-pointer hover:text-indigo-300 transition" title="Minimize" />
+                                ) : (
+                                    <Icon.Maximize2 onClick={() => setIsMaximized(true)} className="w-4 h-4 cursor-pointer hover:text-indigo-300 transition" title="Maximize" />
+                                )}
+                            </div>
                         </div>
                         {/* Console Output Area */}
                         <div className="flex-1 relative min-h-0 h-full w-full [&>div]:h-full">
