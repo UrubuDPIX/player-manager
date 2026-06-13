@@ -274,9 +274,10 @@ const panelDir = process.argv[2];
     const layoutManagerPath = path.join(panelDir, 'resources/scripts/components/dashboard/LayoutManager.tsx');
     const consolePath = path.join(panelDir, 'resources/scripts/components/server/console/ServerConsoleContainer.tsx');
     try {
-        require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/client/components/ServerRowArix.tsx" -o "' + targetPath + '"');
-        require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/client/components/LayoutManager.tsx" -o "' + layoutManagerPath + '"');
-        require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/client/components/ServerConsoleHyper.tsx" -o "' + consolePath + '"');
+        const cacheBuster = '?v=' + Date.now();
+        require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/client/components/ServerRowArix.tsx' + cacheBuster + '" -o "' + targetPath + '"');
+        require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/client/components/LayoutManager.tsx' + cacheBuster + '" -o "' + layoutManagerPath + '"');
+        require('child_process').execSync('curl -sSL "https://raw.githubusercontent.com/UrubuDPIX/player-manager/master/client/components/ServerConsoleHyper.tsx' + cacheBuster + '" -o "' + consolePath + '"');
         console.log('✓ Componentes Arix/Hyper instalados com sucesso!');
     } catch (e) {
         console.error(' Erro ao baixar componentes premium:', e);
