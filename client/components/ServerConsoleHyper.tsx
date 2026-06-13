@@ -115,6 +115,25 @@ const ServerConsoleHyper = () => {
         localStorage.setItem('hyper_layout_v3_' + server.uuid, JSON.stringify(layouts));
     };
 
+    // Hack to force xterm.js to resize when the grid item is resized
+    // Pterodactyl natively only listens to window resize events for xterm.
+    useEffect(() => {
+        const el = document.getElementById('hyper-console-wrapper');
+        if (!el) return;
+        let timeout: NodeJS.Timeout;
+        const observer = new ResizeObserver(() => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 50);
+        });
+        observer.observe(el);
+        return () => {
+            observer.disconnect();
+            clearTimeout(timeout);
+        };
+    }, []);
+
     // Listen to real-time stats via WebSocket
     useEffect(() => {
         if (!instance) return;
@@ -326,7 +345,7 @@ const ServerConsoleHyper = () => {
                             </div>
                             
                             {/* Console Output Area */}
-                            <div className="relative bg-[#0f0f15] w-full overflow-hidden" style={{ height: 'calc(100% - 115px)' }}>
+                            <div id="hyper-console-wrapper" className="relative bg-[#0f0f15] w-full overflow-hidden" style={{ height: 'calc(100% - 115px)' }}>
                                 <div className="absolute inset-0 p-2">
                                     <Spinner.Suspense>
                                         <Console />
