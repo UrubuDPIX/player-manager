@@ -15,6 +15,7 @@ import * as Icon from 'react-feather';
 import { formatDistanceToNow } from 'date-fns';
 import useSWR from 'swr';
 import http from '@/api/http';
+import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
 
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
@@ -71,9 +72,9 @@ const ServerConsoleHyper = () => {
     // Fetch stats for the header widget
     useEffect(() => {
         const interval = setInterval(() => {
-            getServerResourceUsage(server.uuid).then((data) => setStats(data)).catch(() => setStats(null));
+            getServerResourceUsage(server.uuid).then((data: any) => setStats(data)).catch(() => setStats(null));
         }, 5000);
-        getServerResourceUsage(server.uuid).then((data) => setStats(data)).catch(() => setStats(null));
+        getServerResourceUsage(server.uuid).then((data: any) => setStats(data)).catch(() => setStats(null));
         return () => clearInterval(interval);
     }, [server.uuid]);
 
