@@ -330,9 +330,12 @@ const ServerConsoleHyper = () => {
                                     <Console />
                                 </Spinner.Suspense>
                             </div>
+                            <button className="absolute bottom-4 left-4 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/50 px-3 py-1 rounded-full text-[10px] font-bold flex items-center z-10 transition">
+                                <Icon.Trash2 className="w-3 h-3 mr-1" /> Clear
+                            </button>
                         </div>
                         {/* Console Input Bar */}
-                        <div className="flex items-center bg-gray-900/80 border-t border-gray-700 p-2 shrink-0 z-20">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-gray-900/80 border-t border-gray-700 p-2 shrink-0 z-20 gap-2">
                             <div className="flex items-center bg-[#0f0f15] rounded-lg px-3 py-2 w-full border border-gray-800 focus-within:border-indigo-500/50 transition">
                                 <Icon.ChevronsRight className="w-4 h-4 text-indigo-400 mr-2" />
                                 <input 
@@ -346,7 +349,15 @@ const ServerConsoleHyper = () => {
                                         }
                                     }}
                                 />
-                                <button className="ml-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-1.5 rounded-md font-bold transition flex items-center">
+                            </div>
+                            <div className="flex items-center space-x-2 shrink-0">
+                                <button className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-green-400 text-xs px-3 py-2 rounded-md font-semibold transition flex items-center">
+                                    <Icon.Clock className="w-3 h-3 mr-1" /> History
+                                </button>
+                                <button className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-green-400 text-xs px-3 py-2 rounded-md font-semibold transition flex items-center">
+                                    <Icon.UploadCloud className="w-3 h-3 mr-1" /> Upload Log
+                                </button>
+                                <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-md font-bold transition flex items-center">
                                     <Icon.Send className="w-3 h-3 mr-1" /> Send
                                 </button>
                             </div>
