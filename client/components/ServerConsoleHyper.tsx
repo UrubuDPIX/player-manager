@@ -41,28 +41,29 @@ const ActivityLogWidget = () => {
     if (!data) return <div className="p-4 text-center text-gray-400"><Spinner size={'small'} /></div>;
 
     return (
-        <div className="flex flex-col relative pl-4 space-y-4">
+        <div className="flex flex-col relative space-y-4">
             {/* Vertical Timeline Line */}
             <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gray-700/50"></div>
             
             {data.slice(0, 15).map((activity: any, index: number) => (
                 <div key={index} className="relative flex items-start group">
-                    {/* Avatar overlapping the line */}
-                    <img 
-                        src={`https://minotar.net/avatar/${activity.attributes.user?.username || 'Steve'}/32.png`} 
-                        alt="avatar" 
-                        className="absolute -left-[9px] top-1 w-6 h-6 rounded bg-gray-900 border-2 border-gray-800 z-10 group-hover:border-indigo-500 transition-colors"
-                    />
+                    {/* Avatar over line */}
+                    <div className="w-6 h-6 rounded border-2 border-gray-800 bg-gray-900 z-10 shrink-0 overflow-hidden mt-1 group-hover:border-indigo-500 transition-colors">
+                        <img 
+                            src={`https://minotar.net/avatar/${activity.attributes.user?.username || 'Steve'}/32.png`} 
+                            alt="avatar" 
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
                     {/* Content Box */}
-                    <div className="flex-1 bg-gray-900/50 border border-gray-700/50 rounded-lg p-3 ml-6 shadow-sm hover:border-gray-600 transition-colors">
+                    <div className="flex-1 bg-gray-900/50 border border-gray-700/50 rounded-lg p-3 ml-3 shadow-sm hover:border-gray-600 transition-colors">
                         <div className="flex items-center space-x-2 mb-1">
                             <span className="font-semibold text-gray-200 text-sm">{activity.attributes.user?.username || 'System'}</span>
                             <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full text-[10px] font-mono">
                                 {activity.attributes.event}
                             </span>
                         </div>
-                        <p className="text-xs text-gray-400 mt-1.5">
-                            {/* Parse Jexactyl activity properties */}
+                        <p className="text-xs text-gray-400 mt-1.5 line-clamp-2">
                             {activity.attributes.properties?.desc ? activity.attributes.properties.desc : 
                              activity.attributes.event.startsWith('server.file') ? `Modified files on the server` :
                              activity.attributes.event.startsWith('server.power') ? `Changed server power state` : 
@@ -323,7 +324,7 @@ const ServerConsoleHyper = () => {
                         </div>
                         </div>
                         {/* Console Output Area */}
-                        <div className="flex-1 relative bg-[#0f0f15]">
+                        <div className="flex-1 relative min-h-0 bg-[#0f0f15]">
                             <div className="absolute inset-0 p-2 [&>div]:h-full [&>div>div]:h-full">
                                 <Spinner.Suspense>
                                     <Console />
@@ -331,7 +332,7 @@ const ServerConsoleHyper = () => {
                             </div>
                         </div>
                         {/* Console Input Bar */}
-                        <div className="flex items-center bg-gray-900/80 border-t border-gray-700 p-2 shrink-0">
+                        <div className="flex items-center bg-gray-900/80 border-t border-gray-700 p-2 shrink-0 z-20">
                             <div className="flex items-center bg-[#0f0f15] rounded-lg px-3 py-2 w-full border border-gray-800 focus-within:border-indigo-500/50 transition">
                                 <Icon.ChevronsRight className="w-4 h-4 text-indigo-400 mr-2" />
                                 <input 
@@ -353,10 +354,10 @@ const ServerConsoleHyper = () => {
                     </div>
 
                     {/* Big Action Buttons */}
-                    <div key="actions" className={`flex flex-col justify-center items-center h-full ${isEditing ? 'cursor-move' : ''}`}>
-                        <div className="w-full max-w-[300px]">
+                    <div key="actions" className={`flex flex-col justify-center items-center h-full w-full ${isEditing ? 'cursor-move' : ''}`}>
+                        <div className="w-full flex justify-center items-center scale-90 md:scale-100 origin-center [&>div]:flex [&>div]:space-x-3 [&_button]:flex-1 [&_button]:px-6 [&_button]:py-3 [&_button]:text-sm [&_button]:font-semibold [&_button]:shadow-lg hover:[&_button]:scale-105 [&_button]:transition-transform [&_button]:rounded-lg">
                             <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
-                                <PowerButtons className="flex space-x-2 w-full [&>button]:flex-1 [&>button]:py-2.5 [&>button]:text-sm" />
+                                <PowerButtons />
                             </Can>
                         </div>
                     </div>
