@@ -311,17 +311,25 @@ const ServerConsoleHyper = () => {
                                     <Icon.Terminal className="w-3 h-3 mr-1" /> Terminal
                                 </span>
                             </div>
-                            <div className="flex space-x-2 text-indigo-400">
+                            <div className="flex items-center space-x-3 text-indigo-400">
                                 {isCopied ? (
                                     <Icon.Check className="w-4 h-4 text-green-400" />
                                 ) : (
-                                    <Icon.Copy onClick={handleCopy} className="w-4 h-4 cursor-pointer hover:text-indigo-300 transition" title="Copy visible text" />
+                                    <button onClick={handleCopy} title="Copy visible text" className="focus:outline-none hover:text-indigo-300 transition flex items-center justify-center">
+                                        <Icon.Copy className="w-4 h-4" />
+                                    </button>
                                 )}
-                                <Icon.ExternalLink onClick={() => window.open(`/server/${server.id}`, '_blank')} className="w-4 h-4 cursor-pointer hover:text-indigo-300 transition" title="Open in new tab" />
+                                <button onClick={() => window.open(`/server/${server.id}`, '_blank')} title="Open in new tab" className="focus:outline-none hover:text-indigo-300 transition flex items-center justify-center">
+                                    <Icon.ExternalLink className="w-4 h-4" />
+                                </button>
                                 {isMaximized ? (
-                                    <Icon.Minimize2 onClick={() => setIsMaximized(false)} className="w-4 h-4 cursor-pointer hover:text-indigo-300 transition" title="Minimize" />
+                                    <button onClick={() => setIsMaximized(false)} title="Minimize" className="focus:outline-none hover:text-indigo-300 transition flex items-center justify-center">
+                                        <Icon.Minimize2 className="w-4 h-4" />
+                                    </button>
                                 ) : (
-                                    <Icon.Maximize2 onClick={() => setIsMaximized(true)} className="w-4 h-4 cursor-pointer hover:text-indigo-300 transition" title="Maximize" />
+                                    <button onClick={() => setIsMaximized(true)} title="Maximize" className="focus:outline-none hover:text-indigo-300 transition flex items-center justify-center">
+                                        <Icon.Maximize2 className="w-4 h-4" />
+                                    </button>
                                 )}
                             </div>
                         </div>
