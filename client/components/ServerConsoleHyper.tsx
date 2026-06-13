@@ -41,24 +41,42 @@ const ActivityLogWidget = () => {
     if (!data) return <div className="p-4 text-center text-gray-400"><Spinner size={'small'} /></div>;
 
     return (
-        <div className="flex flex-col space-y-2 p-2">
-            {data.slice(0, 3).map((activity: any, index: number) => (
-                <div key={index} className="flex flex-col bg-gray-800/50 p-3 rounded-lg border border-gray-700/50">
-                    <div className="flex items-center text-xs text-gray-300 mb-1">
-                        <img src={`https://minotar.net/avatar/${activity.attributes.user?.username || 'Steve'}/16.png`} alt="avatar" className="w-4 h-4 rounded mr-2" />
-                        <span className="font-semibold text-gray-100 mr-2">{activity.attributes.user?.username || 'System'}</span>
-                        <span className="bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded text-[10px]">
-                            {activity.attributes.event}
-                        </span>
+        <div className="flex flex-col relative pl-4 space-y-4">
+            {/* Vertical Timeline Line */}
+            <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gray-700/50"></div>
+            
+            {data.slice(0, 15).map((activity: any, index: number) => (
+                <div key={index} className="relative flex items-start group">
+                    {/* Avatar overlapping the line */}
+                    <img 
+                        src={`https://minotar.net/avatar/${activity.attributes.user?.username || 'Steve'}/32.png`} 
+                        alt="avatar" 
+                        className="absolute -left-[9px] top-1 w-6 h-6 rounded bg-gray-900 border-2 border-gray-800 z-10 group-hover:border-indigo-500 transition-colors"
+                    />
+                    {/* Content Box */}
+                    <div className="flex-1 bg-gray-900/50 border border-gray-700/50 rounded-lg p-3 ml-6 shadow-sm hover:border-gray-600 transition-colors">
+                        <div className="flex items-center space-x-2 mb-1">
+                            <span className="font-semibold text-gray-200 text-sm">{activity.attributes.user?.username || 'System'}</span>
+                            <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full text-[10px] font-mono">
+                                {activity.attributes.event}
+                            </span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1.5">
+                            {/* Parse Jexactyl activity properties */}
+                            {activity.attributes.properties?.desc ? activity.attributes.properties.desc : 
+                             activity.attributes.event.startsWith('server.file') ? `Modified files on the server` :
+                             activity.attributes.event.startsWith('server.power') ? `Changed server power state` : 
+                             'Performed an action'}
+                        </p>
+                        <p className="text-[10px] text-gray-500 mt-2 font-medium">
+                            {formatDistanceToNow(new Date(activity.attributes.timestamp), { addSuffix: true })}
+                        </p>
                     </div>
-                    <p className="text-sm text-gray-400 mt-1 line-clamp-1">
-                        {activity.attributes.properties?.useragent || 'No details'}
-                    </p>
-                    <span className="text-[10px] text-gray-500 mt-1">
-                        {formatDistanceToNow(new Date(activity.attributes.timestamp), { addSuffix: true })}
-                    </span>
                 </div>
             ))}
+            {(data.length === 0) && (
+                <div className="text-center text-gray-500 text-xs py-4">No activity logs found.</div>
+            )}
         </div>
     );
 };
@@ -385,44 +403,8 @@ const ServerConsoleHyper = () => {
                             </span>
                             <span className="text-[10px] text-indigo-400 cursor-pointer hover:underline">View all →</span>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                            <div className="flex flex-col relative pl-4 space-y-4">
-                                {/* Vertical Timeline Line */}
-                                <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gray-700/50"></div>
-                                
-                                {data?.slice(0, 15).map((activity: any, index: number) => (
-                                    <div key={index} className="relative flex items-start group">
-                                        {/* Avatar overlapping the line */}
-                                        <img 
-                                            src={`https://minotar.net/avatar/${activity.attributes.user?.username || 'Steve'}/32.png`} 
-                                            alt="avatar" 
-                                            className="absolute -left-[9px] top-1 w-6 h-6 rounded bg-gray-900 border-2 border-gray-800 z-10 group-hover:border-indigo-500 transition-colors"
-                                        />
-                                        {/* Content Box */}
-                                        <div className="flex-1 bg-gray-900/50 border border-gray-700/50 rounded-lg p-3 ml-6 shadow-sm hover:border-gray-600 transition-colors">
-                                            <div className="flex items-center space-x-2 mb-1">
-                                                <span className="font-semibold text-gray-200 text-sm">{activity.attributes.user?.username || 'System'}</span>
-                                                <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full text-[10px] font-mono">
-                                                    {activity.attributes.event}
-                                                </span>
-                                            </div>
-                                            <p className="text-xs text-gray-400 mt-1.5">
-                                                {/* Parse Jexactyl activity properties */}
-                                                {activity.attributes.properties?.desc ? activity.attributes.properties.desc : 
-                                                 activity.attributes.event.startsWith('server.file') ? `Modified files on the server` :
-                                                 activity.attributes.event.startsWith('server.power') ? `Changed server power state` : 
-                                                 'Performed an action'}
-                                            </p>
-                                            <p className="text-[10px] text-gray-500 mt-2 font-medium">
-                                                {formatDistanceToNow(new Date(activity.attributes.timestamp), { addSuffix: true })}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                                {(!data || data.length === 0) && (
-                                    <div className="text-center text-gray-500 text-xs py-4">No activity logs found.</div>
-                                )}
-                            </div>
+                        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar min-h-0">
+                            <ActivityLogWidget />
                         </div>
                     </div>
 
