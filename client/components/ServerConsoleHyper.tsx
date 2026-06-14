@@ -32,8 +32,8 @@ const StatusIndicator = styled.div<{ $status: any }>`
 
 // Widget components for Activity
 const ActivityLogWidget = () => {
-    const serverId = ServerContext.useStoreState((state) => state.server.data!.id);
-    const { data, error } = useSWR(`/api/client/servers/${serverId}/activity?include=user`, async (url) => {
+    const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
+    const { data, error } = useSWR(`/api/client/servers/${uuid}/activity?include=user&sort=-timestamp&page=1`, async (url) => {
         const { data } = await http.get(url);
         return data.data; // assuming paginated response
     });
