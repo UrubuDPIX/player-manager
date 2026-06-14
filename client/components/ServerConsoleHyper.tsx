@@ -12,6 +12,7 @@ import { Alert } from '@/components/elements/alert';
 import tw, { styled } from 'twin.macro';
 import { bytesToString, ip as formatIp, mbToBytes } from '@/lib/formatters';
 import * as Icon from 'react-feather';
+import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import useSWR from 'swr';
 import http from '@/api/http';
@@ -124,6 +125,40 @@ const ServerConsoleHyper = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isMaximized, setIsMaximized] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
+    const [isIpCopied, setIsIpCopied] = useState(false);
+    const [fontSize, setFontSize] = useState(() => parseInt(localStorage.getItem('terminal_fontSize') || '14', 10));
+
+    const allocationString = server.allocations.filter(a => a.isDefault).map(a => formatIp(a.alias || a.ip) + ':' + a.port).join(', ');
+
+    const handleCopyIp = () => {
+        if (!allocationString) return;
+        navigator.clipboard.writeText(allocationString);
+        setIsIpCopied(true);
+        setTimeout(() => setIsIpCopied(false), 2000);
+    };
+
+    const handleFontSize = (delta: number) => {
+        setFontSize(prev => {
+            const newSize = Math.max(8, Math.min(24, prev + delta));
+            localStorage.setItem('terminal_fontSize', newSize.toString());
+            return newSize;
+        });
+    };
+
+    useEffect(() => {
+        const styleId = 'hyper-font-override';
+        let styleEl = document.getElementById(styleId);
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = styleId;
+            document.head.appendChild(styleEl);
+        }
+        styleEl.innerHTML = `
+            .xterm-rows { font-size: ${fontSize}px !important; line-height: normal !important; }
+            .xterm-char-measure-element { font-size: ${fontSize}px !important; }
+        `;
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+    }, [fontSize]);
     
     const LAYOUT_VERSION = 'v5';
 
@@ -360,6 +395,12 @@ const ServerConsoleHyper = () => {
                                 </span>
                             </div>
                             <div className="flex items-center space-x-3 text-indigo-400">
+                                {/* Font Size Adjuster */}
+                                <div className="flex items-center bg-gray-900 border border-gray-700/50 rounded-full px-1 py-0.5 ml-2 mr-2">
+                                    <button onClick={() => handleFontSize(-1)} className="px-2 text-indigo-500 hover:text-indigo-400 font-bold transition-colors">-</button>
+                                    <span className="text-[11px] text-gray-300 font-mono w-8 text-center select-none">{fontSize}px</span>
+                                    <button onClick={() => handleFontSize(1)} className="px-2 text-indigo-500 hover:text-indigo-400 font-bold transition-colors">+</button>
+                                </div>
                                 {isCopied ? (
                                     <Icon.Check className="w-4 h-4 text-green-400" />
                                 ) : (
@@ -400,13 +441,18 @@ const ServerConsoleHyper = () => {
 
                     {/* Server Info Chips */}
                     <div key="info" className={`flex flex-col justify-center space-y-3 h-full ${isEditing ? 'cursor-move' : ''}`}>
-                        <div className="flex items-center bg-gray-800/80 border border-gray-700 rounded-lg p-3">
-                            <div className="bg-indigo-500/20 p-2 rounded-lg mr-3">
-                                <Icon.Wifi className="w-5 h-5 text-indigo-400" />
+                        <div 
+                            className="flex items-center bg-gray-800/80 border border-gray-700 hover:border-indigo-500/50 rounded-lg p-3 cursor-pointer group transition-colors"
+                            onClick={handleCopyIp}
+                        >
+                            <div className={`p-2 rounded-lg mr-3 transition-colors ${isIpCopied ? 'bg-green-500/20' : 'bg-indigo-500/20 group-hover:bg-indigo-500/30'}`}>
+                                {isIpCopied ? <Icon.Check className="w-5 h-5 text-green-400" /> : <Icon.Wifi className="w-5 h-5 text-indigo-400" />}
                             </div>
                             <div>
-                                <h3 className="font-bold text-gray-100 text-sm">{server.allocations.filter(a => a.isDefault).map(a => formatIp(a.alias || a.ip) + ':' + a.port).join(', ')}</h3>
-                                <p className="text-xs text-indigo-400">Address</p>
+                                <h3 className="font-bold text-gray-100 text-sm">{allocationString}</h3>
+                                <p className={`text-[10px] uppercase font-semibold transition-colors ${isIpCopied ? 'text-green-400' : 'text-indigo-400'}`}>
+                                    {isIpCopied ? 'Copied!' : 'Address'}
+                                </p>
                             </div>
                         </div>
                         
@@ -438,7 +484,7 @@ const ServerConsoleHyper = () => {
                             <span className="flex items-center text-xs font-bold text-gray-300">
                                 <Icon.Activity className="w-3 h-3 mr-1 text-indigo-400" /> Activity Log
                             </span>
-                            <span className="text-[10px] text-indigo-400 cursor-pointer hover:underline">View all →</span>
+                            <Link to={`/server/${server.id}/activity`} className="text-[10px] text-indigo-400 cursor-pointer hover:underline">View all →</Link>
                         </div>
                         <div className="flex-1 overflow-y-auto min-h-0">
                             <ActivityLogWidget />
