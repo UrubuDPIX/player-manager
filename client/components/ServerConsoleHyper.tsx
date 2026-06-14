@@ -181,35 +181,83 @@ const ServerConsoleHyper = () => {
         localStorage.setItem('hyper_layout_' + LAYOUT_VERSION + '_' + server.uuid, JSON.stringify(layouts));
     };
 
+    const [commandHistory, setCommandHistory] = useState<string[]>([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
     const [command, setCommand] = useState('');
+    const [consoleLogs, setConsoleLogs] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (!instance) return;
+        const listener = (log: string) => {
+            setConsoleLogs(prev => {
+                const newLogs = [...prev, log];
+                if (newLogs.length > 3000) newLogs.shift();
+                return newLogs;
+            });
+        };
+        instance.addListener('console output', listener);
+        instance.addListener('daemon message', listener);
+        return () => {
+            instance.removeListener('console output', listener);
+            instance.removeListener('daemon message', listener);
+        };
+    }, [instance]);
+
     const handleCommand = (e: React.FormEvent) => {
         e.preventDefault();
         if (command.trim().length === 0 || !instance) return;
         instance.send('send command', command);
+        setCommandHistory(prev => [command, ...prev].slice(0, 50));
+        setHistoryIndex(-1);
         setCommand('');
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (historyIndex < commandHistory.length - 1) {
+                const nextIndex = historyIndex + 1;
+                setHistoryIndex(nextIndex);
+                setCommand(commandHistory[nextIndex]);
+            }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (historyIndex > 0) {
+                const nextIndex = historyIndex - 1;
+                setHistoryIndex(nextIndex);
+                setCommand(commandHistory[nextIndex]);
+            } else if (historyIndex === 0) {
+                setHistoryIndex(-1);
+                setCommand('');
+            }
+        }
+    };
+
     const handleClear = () => {
+        setConsoleLogs([]);
+        const canvases = document.querySelectorAll('.xterm canvas');
+        canvases.forEach(c => {
+            const ctx = (c as HTMLCanvasElement).getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, (c as HTMLCanvasElement).width, (c as HTMLCanvasElement).height);
+        });
         const rows = document.querySelectorAll('.xterm-rows > div');
         rows.forEach(r => r.innerHTML = '');
     };
 
     const handleUploadLog = async () => {
-        const rows = document.querySelectorAll('.xterm-rows > div');
-        let text = '';
-        rows.forEach(row => {
-            text += row.textContent + '\n';
-        });
-        if (text.trim() === '') {
-            alert('No logs to upload.');
+        if (consoleLogs.length === 0) {
+            alert('No logs captured yet. Please wait for the console to output something.');
             return;
         }
+        
+        // Strip ANSI escape codes
+        const cleanLogs = consoleLogs.map(l => l.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '')).join('\n');
         
         try {
             const res = await fetch('https://api.mclo.gs/1/log', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ content: text })
+                body: new URLSearchParams({ content: cleanLogs })
             });
             const data = await res.json();
             if (data.success) {
@@ -486,14 +534,21 @@ const ServerConsoleHyper = () => {
                         <div className="bg-gray-900/80 border-t border-gray-700/50 p-3 shrink-0 flex flex-col space-y-3">
                             {/* Action Buttons */}
                             <div className="flex items-center justify-between">
-                                <button onClick={handleClear} className="flex items-center px-4 py-1.5 text-xs text-red-100 font-bold bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-full transition-colors">
+                                <button type="button" onClick={handleClear} className="flex items-center px-4 py-1.5 text-xs text-red-100 font-bold bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-full transition-colors">
                                     <Icon.Trash2 className="w-3 h-3 mr-1.5" /> Clear
                                 </button>
                                 <div className="flex space-x-2">
-                                    <button className="flex items-center px-4 py-1.5 text-xs text-emerald-100 font-bold bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-full transition-colors">
+                                    <button type="button" onClick={() => {
+                                        if (commandHistory.length > 0) {
+                                            setCommand(commandHistory[0]);
+                                            setHistoryIndex(0);
+                                        } else {
+                                            alert('Nenhum comando enviado ainda nesta sessão.');
+                                        }
+                                    }} className="flex items-center px-4 py-1.5 text-xs text-emerald-100 font-bold bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-full transition-colors">
                                         <Icon.Clock className="w-3 h-3 mr-1.5" /> History
                                     </button>
-                                    <button onClick={handleUploadLog} className="flex items-center px-4 py-1.5 text-xs text-emerald-100 font-bold bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-full transition-colors">
+                                    <button type="button" onClick={handleUploadLog} className="flex items-center px-4 py-1.5 text-xs text-emerald-100 font-bold bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-full transition-colors">
                                         <Icon.UploadCloud className="w-3 h-3 mr-1.5" /> Upload Log
                                     </button>
                                 </div>
@@ -507,7 +562,8 @@ const ServerConsoleHyper = () => {
                                         type="text" 
                                         value={command}
                                         onChange={(e) => setCommand(e.target.value)}
-                                        placeholder="Type a command..." 
+                                        onKeyDown={handleKeyDown}
+                                        placeholder="Type a command... (use UP/DOWN arrows for history)" 
                                         className="w-full bg-[#0a0a0c] border border-gray-800 rounded-lg py-2 pl-10 pr-4 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all font-mono"
                                     />
                                 </div>
