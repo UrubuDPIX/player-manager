@@ -38,6 +38,35 @@ const ActivityLogWidget = () => {
         return data.data; // assuming paginated response
     });
 
+    const parseActivityEvent = (event: string, props: any) => {
+        switch (event) {
+            case 'server:power.start': return { badge: 'Start', desc: 'Iniciou o servidor' };
+            case 'server:power.stop': return { badge: 'Stop', desc: 'Desligou o servidor' };
+            case 'server:power.restart': return { badge: 'Restart', desc: 'Reiniciou o servidor' };
+            case 'server:power.kill': return { badge: 'Kill', desc: 'Forçou o desligamento' };
+            case 'server:console.command': return { badge: 'Console', desc: `Executou comando: ${props?.command || ''}` };
+            case 'server:file.read': return { badge: 'File', desc: `Leu o arquivo ${props?.files?.[0] || props?.file || ''}` };
+            case 'server:file.write': return { badge: 'File', desc: `Modificou o arquivo ${props?.files?.[0] || props?.file || ''}` };
+            case 'server:file.delete': return { badge: 'File', desc: 'Apagou arquivo(s)' };
+            case 'server:file.create': return { badge: 'File', desc: `Criou arquivo ${props?.files?.[0] || props?.file || ''}` };
+            case 'server:file.rename': return { badge: 'File', desc: 'Renomeou arquivo(s)' };
+            case 'server:file.download': return { badge: 'File', desc: `Baixou arquivo(s)` };
+            case 'server:file.upload': return { badge: 'File', desc: 'Enviou arquivo(s)' };
+            case 'server:file.extract': return { badge: 'File', desc: 'Extraiu arquivo(s)' };
+            case 'server:file.compress': return { badge: 'File', desc: 'Compactou arquivo(s)' };
+            case 'server:backup.start': return { badge: 'Backup', desc: 'Iniciou criação de backup' };
+            case 'server:backup.complete': return { badge: 'Backup', desc: 'Concluiu backup' };
+            case 'server:backup.restore': return { badge: 'Backup', desc: 'Restaurou backup' };
+            case 'server:backup.delete': return { badge: 'Backup', desc: 'Apagou backup' };
+            case 'server:startup.image': return { badge: 'Config', desc: 'Alterou a imagem Docker' };
+            case 'server:settings.rename': return { badge: 'Config', desc: 'Renomeou o servidor' };
+            default:
+                if (event.startsWith('server:file.')) return { badge: 'File', desc: 'Ação em arquivos' };
+                if (event.startsWith('server:power.')) return { badge: 'Power', desc: 'Ação de energia' };
+                return { badge: 'System', desc: props?.desc || 'Realizou uma ação no painel' };
+        }
+    };
+
     if (!data) return <div className="p-4 text-center text-gray-400"><Spinner size={'small'} /></div>;
 
     return (
@@ -45,7 +74,9 @@ const ActivityLogWidget = () => {
             {/* Vertical Timeline Line */}
             <div className="absolute left-[27px] top-4 bottom-2 w-0.5 bg-gray-700/50"></div>
             
-            {data.slice(0, 15).map((activity: any, index: number) => (
+            {data.slice(0, 15).map((activity: any, index: number) => {
+                const parsed = parseActivityEvent(activity.attributes.event, activity.attributes.properties || {});
+                return (
                 <div key={index} className="relative flex items-start group">
                     {/* Avatar overlapping the line */}
                     <img 
@@ -58,22 +89,19 @@ const ActivityLogWidget = () => {
                         <div className="flex items-center space-x-2 mb-1">
                             <span className="font-semibold text-gray-200 text-sm">{activity.attributes.relationships?.actor?.attributes?.username || activity.attributes.user?.username || 'System'}</span>
                             <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full text-[10px] font-mono">
-                                {activity.attributes.event}
+                                {parsed.badge}
                             </span>
                         </div>
                         <p className="text-xs text-gray-400 mt-1.5">
-                            {/* Parse Jexactyl activity properties */}
-                            {activity.attributes.properties?.desc ? activity.attributes.properties.desc : 
-                             activity.attributes.event.startsWith('server.file') ? `Modified files on the server` :
-                             activity.attributes.event.startsWith('server.power') ? `Changed server power state` : 
-                             'Performed an action'}
+                            {parsed.desc}
                         </p>
                         <p className="text-[10px] text-gray-500 mt-2 font-medium">
                             {formatDistanceToNow(new Date(activity.attributes.timestamp), { addSuffix: true })}
                         </p>
                     </div>
                 </div>
-            ))}
+                );
+            })}
             {(data.length === 0) && (
                 <div className="text-center text-gray-500 text-xs py-4">No activity logs found.</div>
             )}
