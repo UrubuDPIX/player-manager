@@ -463,8 +463,8 @@ const ServerConsoleHyper = () => {
                                 )}
                             </div>
                         </div>
-                        {/* Console Output Area */}
-                        <div className="flex-1 relative min-h-0 h-full w-full [&>div]:h-full">
+                        {/* Console Output Area (Hiding default Pterodactyl input box via CSS) */}
+                        <div className="flex-1 relative min-h-0 h-full w-full [&>div]:h-full [&>div>div.mt-4]:!hidden [&_input]:!hidden">
                             <Spinner.Suspense>
                                 <Console />
                             </Spinner.Suspense>
