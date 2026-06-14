@@ -465,9 +465,15 @@ const ServerConsoleHyper = () => {
                         </div>
                         {/* Console Output Area (Hiding default Pterodactyl input box via CSS) */}
                         <style dangerouslySetInnerHTML={{__html: `
-                            .pterodactyl-console-wrapper > div > div:nth-child(2),
-                            .pterodactyl-console-wrapper div:has(> input),
-                            .pterodactyl-console-wrapper .mt-4.mb-2 {
+                            .pterodactyl-console-wrapper > div:has(input[type="text"]):not(:has(.xterm)),
+                            .pterodactyl-console-wrapper > div > div:has(input[type="text"]):not(:has(.xterm)),
+                            .pterodactyl-console-wrapper > form,
+                            .pterodactyl-console-wrapper > div > form {
+                                display: none !important;
+                            }
+                            /* Fallback in case the input is hidden but the wrapper remains */
+                            .pterodactyl-console-wrapper [class*="console_command_"],
+                            .pterodactyl-console-wrapper [class*="command_input_"] {
                                 display: none !important;
                             }
                         `}} />
