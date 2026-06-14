@@ -178,7 +178,48 @@ const ServerConsoleHyper = () => {
 
     const onLayoutChange = (layout: any, layouts: any) => {
         setLayouts(layouts);
-        localStorage.setItem('hyper_layout_v2_' + server.uuid, JSON.stringify(layouts));
+        localStorage.setItem('hyper_layout_' + LAYOUT_VERSION + '_' + server.uuid, JSON.stringify(layouts));
+    };
+
+    const [command, setCommand] = useState('');
+    const handleCommand = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (command.trim().length === 0 || !instance) return;
+        instance.send('send command', command);
+        setCommand('');
+    };
+
+    const handleClear = () => {
+        const rows = document.querySelectorAll('.xterm-rows > div');
+        rows.forEach(r => r.innerHTML = '');
+    };
+
+    const handleUploadLog = async () => {
+        const rows = document.querySelectorAll('.xterm-rows > div');
+        let text = '';
+        rows.forEach(row => {
+            text += row.textContent + '\n';
+        });
+        if (text.trim() === '') {
+            alert('No logs to upload.');
+            return;
+        }
+        
+        try {
+            const res = await fetch('https://api.mclo.gs/1/log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ content: text })
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.open(data.url, '_blank');
+            } else {
+                alert('Failed to upload log');
+            }
+        } catch (e) {
+            alert('Error uploading log');
+        }
     };
 
     // Listen to real-time stats via WebSocket
@@ -427,6 +468,40 @@ const ServerConsoleHyper = () => {
                             <Spinner.Suspense>
                                 <Console />
                             </Spinner.Suspense>
+                        </div>
+                        {/* Custom Console Input & Actions */}
+                        <div className="bg-gray-900/80 border-t border-gray-700/50 p-3 shrink-0 flex flex-col space-y-3">
+                            {/* Action Buttons */}
+                            <div className="flex items-center justify-between">
+                                <button onClick={handleClear} className="flex items-center px-4 py-1.5 text-xs text-red-100 font-bold bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-full transition-colors">
+                                    <Icon.Trash2 className="w-3 h-3 mr-1.5" /> Clear
+                                </button>
+                                <div className="flex space-x-2">
+                                    <button className="flex items-center px-4 py-1.5 text-xs text-emerald-100 font-bold bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-full transition-colors">
+                                        <Icon.Clock className="w-3 h-3 mr-1.5" /> History
+                                    </button>
+                                    <button onClick={handleUploadLog} className="flex items-center px-4 py-1.5 text-xs text-emerald-100 font-bold bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-full transition-colors">
+                                        <Icon.UploadCloud className="w-3 h-3 mr-1.5" /> Upload Log
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {/* Command Input */}
+                            <form onSubmit={handleCommand} className="flex items-center w-full">
+                                <div className="relative flex-1 flex items-center">
+                                    <Icon.ChevronsRight className="absolute left-3 w-4 h-4 text-indigo-500" />
+                                    <input 
+                                        type="text" 
+                                        value={command}
+                                        onChange={(e) => setCommand(e.target.value)}
+                                        placeholder="Type a command..." 
+                                        className="w-full bg-[#0a0a0c] border border-gray-800 rounded-lg py-2 pl-10 pr-4 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all font-mono"
+                                    />
+                                </div>
+                                <button type="submit" className="ml-2 flex items-center px-6 py-2 bg-indigo-600/20 border border-indigo-500/50 hover:bg-indigo-600/40 text-indigo-200 font-bold rounded-lg transition-colors">
+                                    <Icon.Send className="w-4 h-4 mr-2" /> Send
+                                </button>
+                            </form>
                         </div>
                     </div>
 
