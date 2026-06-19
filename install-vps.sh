@@ -288,6 +288,7 @@ build_panel() {
     
     print_info "Instalando dependências no painel..."
     # Restaura o estado original do painel antes de mexer (previne o sumiço do monaco-editor)
+    git checkout package.json yarn.lock 2>/dev/null || true
     yarn install || npm install
 
     yarn remove prismarine-nbt pako buffer @types/pako nbt react-grid-layout @types/react-grid-layout 2>/dev/null || true
