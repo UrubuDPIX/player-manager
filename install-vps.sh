@@ -290,6 +290,10 @@ build_panel() {
     yarn remove prismarine-nbt pako buffer @types/pako nbt react-grid-layout @types/react-grid-layout 2>/dev/null || true
     npm uninstall prismarine-nbt pako buffer @types/pako nbt react-grid-layout @types/react-grid-layout 2>/dev/null || true
     yarn add pako buffer react-grid-layout@1.3.4 @types/react-grid-layout@1.1.3 || npm install pako buffer react-grid-layout@1.3.4 @types/react-grid-layout@1.1.3
+    
+    # Previne erro comum de "Cannot find module 'monaco-editor-webpack-plugin'" no Hyper
+    yarn install || npm install
+    yarn add -D monaco-editor-webpack-plugin 2>/dev/null || npm install -D monaco-editor-webpack-plugin 2>/dev/null || true
 
     print_info "Limpando cache de build antigo..."
     rm -rf public/assets/* 2>/dev/null || true
