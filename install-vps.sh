@@ -43,7 +43,7 @@ detect_panel() {
         return 0
     fi
     
-    local paths=("/var/www/jexactyl" "/var/www/pterodactyl" "/var/www/pelican" "/var/www/panel" "/home/jexactyl" "/opt/jexactyl" "/opt/pterodactyl")
+    local paths=("/var/www/hyper-game-panel" "/var/www/hyper" "/var/www/jexactyl" "/var/www/pterodactyl" "/var/www/pelican" "/var/www/panel" "/home/jexactyl" "/opt/jexactyl" "/opt/pterodactyl")
     
     for path in "${paths[@]}"; do
         if [ -f "$path/artisan" ] && [ -d "$path/vendor" ]; then
