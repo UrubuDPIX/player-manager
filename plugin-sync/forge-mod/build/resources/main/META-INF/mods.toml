@@ -1,9 +1,0 @@
-modLoader="javafml"
-loaderVersion="[55,)"
-license="MIT"
-
-[[mods]]
-modId="playermanagersyncforge"
-version="1.0.0"
-displayName="PlayerManagerSync Forge Mod"
-description='A Forge mod variant of PlayerManagerSync.'
