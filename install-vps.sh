@@ -286,9 +286,10 @@ build_panel() {
     print_step "Instalando dependências NBT e compilando painel..."
     cd "$PANEL_DIR"
     
-    print_info "Instalando dependências no painel..."
-    # Restaura o estado original do painel antes de mexer (previne o sumiço do monaco-editor)
-    git checkout package.json yarn.lock 2>/dev/null || true
+    print_info "Limpando lockfiles corrompidos e restaurando dependências..."
+    rm -f yarn.lock package-lock.json 2>/dev/null || true
+    yarn remove monaco-editor-webpack-plugin 2>/dev/null || true
+    yarn add -D monaco-editor-webpack-plugin@^6.0.0
     yarn install || npm install
 
     yarn remove prismarine-nbt pako buffer @types/pako nbt react-grid-layout @types/react-grid-layout 2>/dev/null || true
