@@ -239,12 +239,15 @@ const panelDir = process.argv[2];
   const ls = fileContent.lastIndexOf('\n', pmMatch.index) + 1;
   const ind = (fileContent.slice(ls, pmMatch.index).match(/^(\s*)/) || ['',''])[1];
   
-  const isLink = pmMatch[0].startsWith('<Link');
-  const tag = isLink ? 'Link' : 'NavLink';
+  let clone = pmMatch[0];
+  clone = clone.replace(/\/modpacks`\}/i, '/players`}');
+  clone = clone.replace(/\/files`\}/i, '/players`}');
+  clone = clone.replace(/\/users`\}/i, '/players`}');
+  clone = clone.replace(/icon=\{[^}]+\}/i, 'icon={faUsers}');
+  clone = clone.replace(/>\s*(?:Modpacks? Installer|Modpacks?|File Manager|Files|Users?)\s*</ig, '> Players / Worlds <');
+  clone = clone.replace(/Modpack Installer|Modpacks|File Manager|Files|Users/ig, 'Players / Worlds');
   
-  const inj = '\n' + ind + '<' + tag + ' to={`${match.url}/players`}>' +
-              '\n' + ind + '    <FontAwesomeIcon icon={faUsers} /> Players / Worlds' +
-              '\n' + ind + '</' + tag + '>';
+  const inj = '\n' + ind + clone;
   
   // Inject import FIRST before we inject the JSX
   if (!fileContent.match(/import\s+.*faUsers.*from\s+['"]@fortawesome\/free-solid-svg-icons['"]/)) {
