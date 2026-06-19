@@ -38,7 +38,12 @@ print_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 detect_panel() {
     print_step "Detectando instalação do Jexactyl/Pterodactyl..."
     
-    local paths=("/var/www/jexactyl" "/var/www/pterodactyl" "/var/www/panel" "/home/jexactyl" "/opt/jexactyl" "/opt/pterodactyl")
+    if [ -n "$PANEL_DIR" ] && [ -f "$PANEL_DIR/artisan" ]; then
+        print_success "Painel encontrado via variável de ambiente: $PANEL_DIR"
+        return 0
+    fi
+    
+    local paths=("/var/www/jexactyl" "/var/www/pterodactyl" "/var/www/pelican" "/var/www/panel" "/home/jexactyl" "/opt/jexactyl" "/opt/pterodactyl")
     
     for path in "${paths[@]}"; do
         if [ -f "$path/artisan" ] && [ -d "$path/vendor" ]; then
