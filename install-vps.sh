@@ -288,8 +288,8 @@ build_panel() {
     
     print_info "Limpando lockfiles corrompidos e restaurando dependências..."
     rm -f yarn.lock package-lock.json 2>/dev/null || true
-    yarn remove monaco-editor-webpack-plugin 2>/dev/null || true
-    yarn add -D monaco-editor-webpack-plugin@^6.0.0
+    yarn remove monaco-editor-webpack-plugin monaco-editor 2>/dev/null || true
+    yarn add -D monaco-editor@0.30.1 monaco-editor-webpack-plugin@^6.0.0
     yarn install || npm install
 
     yarn remove prismarine-nbt pako buffer @types/pako nbt react-grid-layout @types/react-grid-layout 2>/dev/null || true
